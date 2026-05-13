@@ -46,7 +46,7 @@ export default function SignIn() {
           setError(null);
 
           const formData = new FormData(e.target as HTMLFormElement);
-          formData.set("flow", "signIn");
+          formData.set("flow", "signUp");
 
           try {
             // Just sign in - the useSyncUser hook on the dashboard will handle syncing
