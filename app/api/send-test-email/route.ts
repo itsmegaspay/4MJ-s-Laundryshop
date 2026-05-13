@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     const result = await sendEmail({
       to,
-      subject: 'Test Email from 4MJ's Laundry',
+      subject: "Test Email from 4MJ's Laundry",
       html,
     });
 

@@ -88,7 +88,7 @@ export const sendWelcomeEmail = async (
 
   return sendEmail({
     to: email,
-    subject: 'Welcome to 4MJ's Laundry - Your Account Details',
+    subject: "Welcome to 4MJ's Laundry - Your Account Details",
     html,
   });
 };
