@@ -475,6 +475,97 @@ export default function TrackPage() {
           </Card>
         )}
 
+        {/* Shop Info Card */}
+        <Card className="border-blue-200 dark:border-blue-800">
+          <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2 text-blue-700 dark:text-blue-400">
+              🏪 4MJ's Laundry Shop Info
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
+
+            {/* Contact & Hours */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Address</p>
+                <p className="text-sm font-medium">📍 65-E New Lucban, Baguio City</p>
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Store Hours</p>
+                <p className="text-sm font-medium">🕒 8:00 AM – 8:00 PM (Mon – Sun)</p>
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Contact Numbers</p>
+                <p className="text-sm font-medium">📞 09562331368 | 09286145431 | (074) 244-4462</p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Full Service Pricing */}
+            <div>
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Full Service / Drop Off</p>
+              <div className="space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <div>
+                    <span>Regular Clothes</span>
+                    <span className="text-xs text-muted-foreground ml-1">(7kg/load)</span>
+                  </div>
+                  <span className="font-medium">₱230.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <div>
+                    <span>Assorted Color Clothes</span>
+                    <span className="text-xs text-muted-foreground ml-1">(7kg/load)</span>
+                  </div>
+                  <span className="font-medium">₱230.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <div>
+                    <span>Towel &amp; Blankets</span>
+                    <span className="text-xs text-muted-foreground ml-1">(5kg/load)</span>
+                  </div>
+                  <span className="font-medium">₱230.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <div>
+                    <span>Comforter</span>
+                    <span className="text-xs text-muted-foreground ml-1">(Small &amp; Medium)</span>
+                  </div>
+                  <span className="font-medium">₱250.00</span>
+                </div>
+                <div className="flex justify-between text-orange-600 dark:text-orange-400">
+                  <span>Storage Fee (more than 2 days)</span>
+                  <span className="font-medium">₱15/day</span>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Self Service Pricing */}
+            <div>
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-0.5">Self-Service</p>
+              <p className="text-xs text-muted-foreground mb-2">Liquid detergent &amp; fabcon not included · Max 7kg per load</p>
+              <div className="space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span>Wash Only</span>
+                  <span className="font-medium">₱80.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Spinning (10 mins)</span>
+                  <span className="font-medium">₱35.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Dry Only</span>
+                  <span className="font-medium">₱120.00</span>
+                </div>
+              </div>
+            </div>
+
+          </CardContent>
+        </Card>
+
         {/* Bottom spacing for mobile */}
         <div className="pb-4 sm:pb-0" />
       </main>

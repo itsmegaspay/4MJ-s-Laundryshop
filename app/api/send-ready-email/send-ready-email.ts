@@ -258,7 +258,9 @@ export async function POST(request: NextRequest) {
                 <h4>📍 Ready for Pickup Now!</h4>
                 <p><strong>Please come pick up your laundry at your earliest convenience.</strong></p>
                 <p style="margin-top: 10px;">💳 Payment can be made at the time of pickup</p>
-                <p>🕒 Store Hours: [Your Store Hours Here]</p>
+                <p>🕒 Store Hours: 8:00 AM - 8:00 PM (Monday - Sunday)</p>
+                <p>📍 65-E New Lucban, Baguio City</p>
+                <p>📞 09562331368 | 09286145431 | (074) 244-4462</p>
               </div>
 
               <div class="info-box">
