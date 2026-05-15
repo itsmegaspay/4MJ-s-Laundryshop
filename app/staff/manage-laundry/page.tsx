@@ -606,13 +606,13 @@ function ViewOrderModal({
     
     let total = 0;
     if (order.orderType.clothes && weight.clothes > 0) {
-      total += weight.clothes * pricing.clothesPricePerKg;
+      total += pricing.clothesPricePerKg;
     }
     if (order.orderType.blanketsLight && weight.blanketsLight > 0) {
-      total += weight.blanketsLight * pricing.blanketsLightPricePerKg;
+      total += pricing.blanketsLightPricePerKg;
     }
     if (order.orderType.blanketsThick && weight.blanketsThick > 0) {
-      total += weight.blanketsThick * pricing.blanketsThickPricePerKg;
+      total += pricing.blanketsThickPricePerKg;
     }
     return total;
   };
@@ -643,13 +643,13 @@ function ViewOrderModal({
       };
       
       if (order.orderType.clothes && weight.clothes > 0) {
-        pricingBreakdown.clothesPrice = weight.clothes * (pricing?.clothesPricePerKg || 0);
+        pricingBreakdown.clothesPrice = pricing?.clothesPricePerKg || 0;
       }
       if (order.orderType.blanketsLight && weight.blanketsLight > 0) {
-        pricingBreakdown.blanketsLightPrice = weight.blanketsLight * (pricing?.blanketsLightPricePerKg || 0);
+        pricingBreakdown.blanketsLightPrice = pricing?.blanketsLightPricePerKg || 0;
       }
       if (order.orderType.blanketsThick && weight.blanketsThick > 0) {
-        pricingBreakdown.blanketsThickPrice = weight.blanketsThick * (pricing?.blanketsThickPricePerKg || 0);
+        pricingBreakdown.blanketsThickPrice = pricing?.blanketsThickPricePerKg || 0;
       }
 
       // STEP 1: Send email notification FIRST
@@ -830,7 +830,7 @@ function ViewOrderModal({
                 {order.orderType.clothes && (
                   <div>
                     <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
-                      Clothes (kg) * - ₱{pricing?.clothesPricePerKg || 0}/kg
+                      Clothes weight (kg) * — ₱{pricing?.clothesPricePerKg || 0}/load (flat rate)
                     </label>
                     <div className="flex gap-2 items-center">
                       <input
@@ -843,7 +843,7 @@ function ViewOrderModal({
                         required
                       />
                       <span className="text-sm font-medium text-slate-900 dark:text-slate-100 min-w-[80px] text-right">
-                        ₱{((weight.clothes || 0) * (pricing?.clothesPricePerKg || 0)).toFixed(2)}
+                        ₱{weight.clothes > 0 ? (pricing?.clothesPricePerKg || 0).toFixed(2) : '0.00'}
                       </span>
                     </div>
                   </div>
@@ -851,7 +851,7 @@ function ViewOrderModal({
                 {order.orderType.blanketsLight && (
                   <div>
                     <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
-                      Light Blankets (kg) * - ₱{pricing?.blanketsLightPricePerKg || 0}/kg
+                      Light Blankets weight (kg) * — ₱{pricing?.blanketsLightPricePerKg || 0}/load (flat rate)
                     </label>
                     <div className="flex gap-2 items-center">
                       <input
@@ -864,7 +864,7 @@ function ViewOrderModal({
                         required
                       />
                       <span className="text-sm font-medium text-slate-900 dark:text-slate-100 min-w-[80px] text-right">
-                        ₱{((weight.blanketsLight || 0) * (pricing?.blanketsLightPricePerKg || 0)).toFixed(2)}
+                        ₱{weight.blanketsLight > 0 ? (pricing?.blanketsLightPricePerKg || 0).toFixed(2) : '0.00'}
                       </span>
                     </div>
                   </div>
@@ -872,7 +872,7 @@ function ViewOrderModal({
                 {order.orderType.blanketsThick && (
                   <div>
                     <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
-                      Thick Blankets (kg) * - ₱{pricing?.blanketsThickPricePerKg || 0}/kg
+                      Thick Blankets weight (kg) * — ₱{pricing?.blanketsThickPricePerKg || 0}/load (flat rate)
                     </label>
                     <div className="flex gap-2 items-center">
                       <input
@@ -885,7 +885,7 @@ function ViewOrderModal({
                         required
                       />
                       <span className="text-sm font-medium text-slate-900 dark:text-slate-100 min-w-[80px] text-right">
-                        ₱{((weight.blanketsThick || 0) * (pricing?.blanketsThickPricePerKg || 0)).toFixed(2)}
+                        ₱{weight.blanketsThick > 0 ? (pricing?.blanketsThickPricePerKg || 0).toFixed(2) : '0.00'}
                       </span>
                     </div>
                   </div>

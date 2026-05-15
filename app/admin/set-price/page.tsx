@@ -87,15 +87,15 @@ export default function SetPricePage() {
     }
   };
 
-  const calculateExample = (weight: number) => {
+  const calculateExample = () => {
     const clothesPriceNum = parseInt(clothesPrice) || 0;
     const blanketsLightPriceNum = parseInt(blanketsLightPrice) || 0;
     const blanketsThickPriceNum = parseInt(blanketsThickPrice) || 0;
 
     return {
-      clothes: (clothesPriceNum * weight).toFixed(0),
-      blanketsLight: (blanketsLightPriceNum * weight).toFixed(0),
-      blanketsThick: (blanketsThickPriceNum * weight).toFixed(0),
+      clothes: clothesPriceNum.toFixed(0),
+      blanketsLight: blanketsLightPriceNum.toFixed(0),
+      blanketsThick: blanketsThickPriceNum.toFixed(0),
     };
   };
 
@@ -114,8 +114,7 @@ export default function SetPricePage() {
     return null;
   }
 
-  const exampleWeight = 5;
-  const examples = calculateExample(exampleWeight);
+  const examples = calculateExample();
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 flex">
@@ -130,7 +129,7 @@ export default function SetPricePage() {
                 Set Price
               </h1>
               <p className="text-slate-600 dark:text-slate-400 mt-1">
-                Configure the price per kilogram for each laundry type
+              Configure the price per load for each laundry type
               </p>
             </div>
 
@@ -160,7 +159,7 @@ export default function SetPricePage() {
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       <div className="flex items-center gap-2">
                         <Shirt size={16} />
-                        Clothes Price (per kg)
+                        Clothes Price (per load)
                       </div>
                     </label>
                     <div className="relative">
@@ -185,7 +184,7 @@ export default function SetPricePage() {
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       <div className="flex items-center gap-2">
                         <Bed size={16} />
-                        Light Blankets Price (per kg)
+                        Light Blankets Price (per load)
                       </div>
                     </label>
                     <div className="relative">
@@ -210,7 +209,7 @@ export default function SetPricePage() {
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       <div className="flex items-center gap-2">
                         <Bed size={16} className="text-slate-700 dark:text-slate-300" />
-                        Thick Blankets Price (per kg)
+                        Thick Blankets Price (per load)
                       </div>
                     </label>
                     <div className="relative">
@@ -251,19 +250,19 @@ export default function SetPricePage() {
                       <div className="flex justify-between items-center">
                         <span className="text-slate-600 dark:text-slate-400">Clothes:</span>
                         <span className="font-semibold text-slate-900 dark:text-slate-100">
-                          ₱{currentPricing.clothesPricePerKg}/kg
+                          ₱{currentPricing.clothesPricePerKg}/load
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-slate-600 dark:text-slate-400">Light Blankets:</span>
                         <span className="font-semibold text-slate-900 dark:text-slate-100">
-                          ₱{currentPricing.blanketsLightPricePerKg || 70}/kg
+                          ₱{currentPricing.blanketsLightPricePerKg || 230}/load
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-slate-600 dark:text-slate-400">Thick Blankets:</span>
                         <span className="font-semibold text-slate-900 dark:text-slate-100">
-                          ₱{currentPricing.blanketsThickPricePerKg || 100}/kg
+                          ₱{currentPricing.blanketsThickPricePerKg || 250}/load
                         </span>
                       </div>
                       <div className="pt-2 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
@@ -279,7 +278,7 @@ export default function SetPricePage() {
                 {/* Example Calculations */}
                 <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-                    Example Calculations ({exampleWeight} kg each)
+                    Price Per Load
                   </h3>
 
                   <div className="space-y-3">

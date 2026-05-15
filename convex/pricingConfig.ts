@@ -127,9 +127,9 @@ export const getCurrentPricing = query({
     // Return default pricing if not configured yet
     if (!config) {
       return {
-        clothesPricePerKg: 30,
-        blanketsLightPricePerKg: 50,
-        blanketsThickPricePerKg: 60,
+        clothesPricePerKg: 230,
+        blanketsLightPricePerKg: 230,
+        blanketsThickPricePerKg: 250,
         currency: "PHP",
         updatedAt: Date.now(),
       };
@@ -139,7 +139,7 @@ export const getCurrentPricing = query({
   },
 });
 
-// Calculate price based on weight
+// Calculate price based on load (flat rate per load, not per kg)
 export const calculatePrice = query({
   args: {
     clothesWeight: v.optional(v.number()),
@@ -149,9 +149,9 @@ export const calculatePrice = query({
   handler: async (ctx, args) => {
     const pricing = await ctx.db.query("pricingConfig").first();
 
-    const clothesPrice = pricing?.clothesPricePerKg || 50;
-    const blanketsLightPrice = pricing?.blanketsLightPricePerKg || 70;
-    const blanketsThickPrice = pricing?.blanketsThickPricePerKg || 100;
+    const clothesPrice = pricing?.clothesPricePerKg || 230;
+    const blanketsLightPrice = pricing?.blanketsLightPricePerKg || 230;
+    const blanketsThickPrice = pricing?.blanketsThickPricePerKg || 250;
 
     let totalPrice = 0;
     const breakdown = {
@@ -160,25 +160,26 @@ export const calculatePrice = query({
       blanketsThickPrice: 0,
     };
 
-    if (args.clothesWeight) {
-      breakdown.clothesPrice = args.clothesWeight * clothesPrice;
+    // Flat rate per load regardless of weight
+    if (args.clothesWeight && args.clothesWeight > 0) {
+      breakdown.clothesPrice = clothesPrice;
       totalPrice += breakdown.clothesPrice;
     }
 
-    if (args.blanketsLightWeight) {
-      breakdown.blanketsLightPrice = args.blanketsLightWeight * blanketsLightPrice;
+    if (args.blanketsLightWeight && args.blanketsLightWeight > 0) {
+      breakdown.blanketsLightPrice = blanketsLightPrice;
       totalPrice += breakdown.blanketsLightPrice;
     }
 
-    if (args.blanketsThickWeight) {
-      breakdown.blanketsThickPrice = args.blanketsThickWeight * blanketsThickPrice;
+    if (args.blanketsThickWeight && args.blanketsThickWeight > 0) {
+      breakdown.blanketsThickPrice = blanketsThickPrice;
       totalPrice += breakdown.blanketsThickPrice;
     }
 
     return {
       ...breakdown,
       totalPrice,
-      pricePerKg: {
+      pricePerLoad: {
         clothes: clothesPrice,
         blanketsLight: blanketsLightPrice,
         blanketsThick: blanketsThickPrice,
