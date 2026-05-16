@@ -591,9 +591,13 @@ function ViewOrderModal({
   formatOrderType,
 }: any) {
   const [weight, setWeight] = useState({
-    clothes: order.weight?.clothes || 0,
-    blanketsLight: order.weight?.blanketsLight || 0,
-    blanketsThick: order.weight?.blanketsThick || 0,
+    regularClothes: order.weight?.regularClothes || order.weight?.clothes || 0,
+    assortedClothes: order.weight?.assortedClothes || 0,
+    towelBlankets: order.weight?.towelBlankets || order.weight?.blanketsLight || 0,
+    comforter: order.weight?.comforter || order.weight?.blanketsThick || 0,
+    selfServiceWash: order.weight?.selfServiceWash || 0,
+    selfServiceSpin: order.weight?.selfServiceSpin || 0,
+    selfServiceDry: order.weight?.selfServiceDry || 0,
   });
   const [isMarkingReady, setIsMarkingReady] = useState(false);
 
@@ -621,9 +625,13 @@ function ViewOrderModal({
 
   // Check if all required weights are entered
   const areAllWeightsEntered = () => {
-    if (order.orderType.clothes && weight.clothes <= 0) return false;
-    if (order.orderType.blanketsLight && weight.blanketsLight <= 0) return false;
-    if (order.orderType.blanketsThick && weight.blanketsThick <= 0) return false;
+    if (order.orderType.regularClothes && weight.regularClothes <= 0) return false;
+    if (order.orderType.assortedClothes && weight.assortedClothes <= 0) return false;
+    if (order.orderType.towelBlankets && weight.towelBlankets <= 0) return false;
+    if (order.orderType.comforter && weight.comforter <= 0) return false;
+    if (order.orderType.selfServiceWash && weight.selfServiceWash <= 0) return false;
+    if (order.orderType.selfServiceSpin && weight.selfServiceSpin <= 0) return false;
+    if (order.orderType.selfServiceDry && weight.selfServiceDry <= 0) return false;
     return true;
   };
 
@@ -643,13 +651,25 @@ function ViewOrderModal({
       };
       
       if (order.orderType.clothes && weight.clothes > 0) {
-        pricingBreakdown.clothesPrice = pricing?.clothesPricePerKg || 0;
+        pricingBreakdown.regularClothesPrice = pricing?.regularClothesPrice ?? 230;
       }
-      if (order.orderType.blanketsLight && weight.blanketsLight > 0) {
-        pricingBreakdown.blanketsLightPrice = pricing?.blanketsLightPricePerKg || 0;
+      if (order.orderType.assortedClothes && weight.assortedClothes > 0) {
+        pricingBreakdown.assortedClothesPrice = pricing?.assortedClothesPrice ?? 230;
       }
-      if (order.orderType.blanketsThick && weight.blanketsThick > 0) {
-        pricingBreakdown.blanketsThickPrice = pricing?.blanketsThickPricePerKg || 0;
+      if (order.orderType.towelBlankets && weight.towelBlankets > 0) {
+        pricingBreakdown.towelBlanketsPrice = pricing?.towelBlanketsPrice ?? 230;
+      }
+      if (order.orderType.comforter && weight.comforter > 0) {
+        pricingBreakdown.comforterPrice = pricing?.comforterPrice ?? 250;
+      }
+      if (order.orderType.selfServiceWash && weight.selfServiceWash > 0) {
+        pricingBreakdown.selfServiceWashPrice = (pricing?.selfServiceWashPrice ?? 80) * weight.selfServiceWash;
+      }
+      if (order.orderType.selfServiceSpin && weight.selfServiceSpin > 0) {
+        pricingBreakdown.selfServiceSpinPrice = (pricing?.selfServiceSpinPrice ?? 35) * weight.selfServiceSpin;
+      }
+      if (order.orderType.selfServiceDry && weight.selfServiceDry > 0) {
+        pricingBreakdown.selfServiceDryPrice = (pricing?.selfServiceDryPrice ?? 120) * weight.selfServiceDry;
       }
 
       // STEP 1: Send email notification FIRST
@@ -998,9 +1018,13 @@ function CreateOrderModal({
   const [formData, setFormData] = useState({
     customerId: "",
     orderType: {
-      clothes: false,
-      blanketsLight: false,
-      blanketsThick: false,
+      regularClothes: false,
+      assortedClothes: false,
+      towelBlankets: false,
+      comforter: false,
+      selfServiceWash: false,
+      selfServiceSpin: false,
+      selfServiceDry: false,
     },
     notes: "",
     pickupDate: "",
@@ -1052,8 +1076,8 @@ function CreateOrderModal({
       return;
     }
     
-    if (!formData.orderType.clothes && !formData.orderType.blanketsLight && !formData.orderType.blanketsThick) {
-      alert("Please select at least one laundry type");
+    if (!formData.orderType.regularClothes && !formData.orderType.assortedClothes && !formData.orderType.towelBlankets && !formData.orderType.comforter && !formData.orderType.selfServiceWash && !formData.orderType.selfServiceSpin && !formData.orderType.selfServiceDry) {
+      alert("Please select at least one service type");
       return;
     }
 

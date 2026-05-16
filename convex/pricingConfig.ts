@@ -82,7 +82,7 @@ export const updatePricing = mutation({
 export const getCurrentPricing = query({
   args: {},
   handler: async (ctx) => {
-    const config = await ctx.db.query("pricingConfig").first();
+    const config = await ctx.db.query("pricingConfig").first() as any;
     return {
       regularClothesPrice: config?.regularClothesPrice ?? 230,
       assortedClothesPrice: config?.assortedClothesPrice ?? 230,
@@ -109,7 +109,7 @@ export const calculatePrice = query({
     selfServiceDry: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const config = await ctx.db.query("pricingConfig").first();
+    const config = await ctx.db.query("pricingConfig").first() as any;
     const p = {
       regularClothes: config?.regularClothesPrice ?? 230,
       assortedClothes: config?.assortedClothesPrice ?? 230,
