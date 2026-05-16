@@ -182,22 +182,30 @@ export default function AnalyticsReportPage() {
   });
 
   // SERVICE TYPE REVENUE BREAKDOWN
-  let clothesRevenue = 0;
-  let blanketsLightRevenue = 0;
-  let blanketsThickRevenue = 0;
+  let regularClothesRev = 0, assortedClothesRev = 0, towelBlanketsRev = 0;
+  let comforterRev = 0, selfServiceRev = 0;
 
   filteredOrders.forEach((order) => {
     if (order.pricing) {
-      clothesRevenue += order.pricing.clothesPrice || 0;
-      blanketsLightRevenue += order.pricing.blanketsLightPrice || 0;
-      blanketsThickRevenue += order.pricing.blanketsThickPrice || 0;
+      regularClothesRev += order.pricing.regularClothesPrice || order.pricing.clothesPrice || 0;
+      assortedClothesRev += order.pricing.assortedClothesPrice || 0;
+      towelBlanketsRev += order.pricing.towelBlanketsPrice || order.pricing.blanketsLightPrice || 0;
+      comforterRev += order.pricing.comforterPrice || order.pricing.blanketsThickPrice || 0;
+      selfServiceRev += (order.pricing.selfServiceWashPrice || 0) + (order.pricing.selfServiceSpinPrice || 0) + (order.pricing.selfServiceDryPrice || 0);
     }
   });
 
+  // Legacy aliases for report table
+  const clothesRevenue = regularClothesRev + assortedClothesRev;
+  const blanketsLightRevenue = towelBlanketsRev;
+  const blanketsThickRevenue = comforterRev;
+
   const serviceRevenueData = [
-    { name: "Clothes", value: clothesRevenue, color: "#3b82f6" },
-    { name: "Light Blankets", value: blanketsLightRevenue, color: "#8b5cf6" },
-    { name: "Thick Blankets", value: blanketsThickRevenue, color: "#f59e0b" },
+    { name: "Regular Clothes", value: regularClothesRev, color: "#3b82f6" },
+    { name: "Assorted Clothes", value: assortedClothesRev, color: "#6366f1" },
+    { name: "Towel & Blankets", value: towelBlanketsRev, color: "#8b5cf6" },
+    { name: "Comforter", value: comforterRev, color: "#f59e0b" },
+    { name: "Self-Service", value: selfServiceRev, color: "#10b981" },
   ].filter((item) => item.value > 0);
 
   // Customer Segment Data
@@ -621,6 +629,7 @@ function ComparisonCard({
   icon: any;
 }) {
   const formatValue = (value: number) => {
+    if (value === undefined || value === null || isNaN(value)) return "0";
     if (format === "currency") return `₱${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
     if (format === "percentage") return `${value.toFixed(1)}%`;
     return value.toString();
