@@ -196,11 +196,18 @@ export default function ManageLaundryPage() {
 
   const formatOrderType = (orderType: any) => {
     const types = [];
-    if (orderType.clothes) types.push("Clothes");
-    if (orderType.blanketsLight) types.push("Light Blankets");
-    if (orderType.blanketsThick) types.push("Thick Blankets");
+    if (orderType.regularClothes) types.push("Regular Clothes");
+    if (orderType.assortedClothes) types.push("Assorted Color Clothes");
+    if (orderType.towelBlankets) types.push("Towel & Blankets");
+    if (orderType.comforter) types.push("Comforter");
+    if (orderType.selfServiceWash) types.push("Wash Only");
+    if (orderType.selfServiceSpin) types.push("Spinning");
+    if (orderType.selfServiceDry) types.push("Dry Only");
+    if (orderType.clothes && !orderType.regularClothes) types.push("Clothes");
+    if (orderType.blanketsLight && !orderType.towelBlankets) types.push("Light Blankets");
+    if (orderType.blanketsThick && !orderType.comforter) types.push("Thick Blankets");
     // Backward compatibility
-    if (orderType.blankets && !orderType.blanketsLight && !orderType.blanketsThick) {
+    if (false) {
       types.push("Blankets");
     }
     return types.join(", ");

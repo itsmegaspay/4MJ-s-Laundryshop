@@ -196,11 +196,19 @@ export default function ManageLaundryPage() {
 
   const formatOrderType = (orderType: any) => {
     const types = [];
-    if (orderType.clothes) types.push("Clothes");
-    if (orderType.blanketsLight) types.push("Light Blankets");
-    if (orderType.blanketsThick) types.push("Thick Blankets");
+    if (orderType.regularClothes) types.push("Regular Clothes");
+    if (orderType.assortedClothes) types.push("Assorted Color Clothes");
+    if (orderType.towelBlankets) types.push("Towel & Blankets");
+    if (orderType.comforter) types.push("Comforter");
+    if (orderType.selfServiceWash) types.push("Wash Only");
+    if (orderType.selfServiceSpin) types.push("Spinning");
+    if (orderType.selfServiceDry) types.push("Dry Only");
+    // Legacy support
+    if (orderType.clothes && !orderType.regularClothes) types.push("Clothes");
+    if (orderType.blanketsLight && !orderType.towelBlankets) types.push("Light Blankets");
+    if (orderType.blanketsThick && !orderType.comforter) types.push("Thick Blankets");
     // Backward compatibility
-    if (orderType.blankets && !orderType.blanketsLight && !orderType.blanketsThick) {
+    if (false) {
       types.push("Blankets");
     }
     return types.join(", ");
@@ -609,15 +617,9 @@ function ViewOrderModal({
     if (!pricing) return 0;
     
     let total = 0;
-    if (order.orderType.clothes && weight.clothes > 0) {
-      total += pricing.clothesPricePerKg;
-    }
-    if (order.orderType.blanketsLight && weight.blanketsLight > 0) {
-      total += pricing.blanketsLightPricePerKg;
-    }
-    if (order.orderType.blanketsThick && weight.blanketsThick > 0) {
-      total += pricing.blanketsThickPricePerKg;
-    }
+    if (order.orderType.clothes && !order.orderType.regularClothes && weight.regularClothes > 0) total += pricing.regularClothesPrice ?? 230;
+    
+    
     return total;
   };
 
@@ -650,7 +652,7 @@ function ViewOrderModal({
         totalPrice: totalPrice,
       };
       
-      if (order.orderType.clothes && weight.clothes > 0) {
+      if ((order.orderType.regularClothes || order.orderType.clothes) && weight.regularClothes > 0) {
         pricingBreakdown.regularClothesPrice = pricing?.regularClothesPrice ?? 230;
       }
       if (order.orderType.assortedClothes && weight.assortedClothes > 0) {
@@ -847,69 +849,32 @@ function ViewOrderModal({
                 Mark as Ready (Add Weight) - All fields required
               </label>
               <div className="space-y-3 mb-4">
-                {order.orderType.clothes && (
-                  <div>
+                              {[
+                  { key: "regularClothes", label: "Regular Clothes weight (kg)", price: pricing?.regularClothesPrice ?? 230, isWeight: true, show: order.orderType.regularClothes || order.orderType.clothes },
+                  { key: "assortedClothes", label: "Assorted Color Clothes weight (kg)", price: pricing?.assortedClothesPrice ?? 230, isWeight: true, show: order.orderType.assortedClothes },
+                  { key: "towelBlankets", label: "Towel & Blankets weight (kg)", price: pricing?.towelBlanketsPrice ?? 230, isWeight: true, show: order.orderType.towelBlankets || order.orderType.blanketsLight },
+                  { key: "comforter", label: "Comforter weight (kg)", price: pricing?.comforterPrice ?? 250, isWeight: true, show: order.orderType.comforter || order.orderType.blanketsThick },
+                  { key: "selfServiceWash", label: "Wash Only (sessions)", price: pricing?.selfServiceWashPrice ?? 80, isWeight: false, show: order.orderType.selfServiceWash },
+                  { key: "selfServiceSpin", label: "Spinning sessions", price: pricing?.selfServiceSpinPrice ?? 35, isWeight: false, show: order.orderType.selfServiceSpin },
+                  { key: "selfServiceDry", label: "Dry Only (sessions)", price: pricing?.selfServiceDryPrice ?? 120, isWeight: false, show: order.orderType.selfServiceDry },
+                ].filter(({ show }) => show).map(({ key, label, price, isWeight }) => (
+                  <div key={key}>
                     <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
-                      Clothes weight (kg) * — ₱{pricing?.clothesPricePerKg || 0}/load (flat rate)
+                      {label} * — ₱{price}/{isWeight ? "load (flat rate)" : "session"}
                     </label>
                     <div className="flex gap-2 items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={weight.clothes}
-                        onChange={(e) => setWeight({ ...weight, clothes: parseInt(e.target.value) || 0 })}
+                      <input type="number" min="0" step="1"
+                        value={weight[key as keyof typeof weight]}
+                        onChange={(e) => setWeight({ ...weight, [key]: parseInt(e.target.value) || 0 })}
                         className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
                         required
                       />
                       <span className="text-sm font-medium text-slate-900 dark:text-slate-100 min-w-[80px] text-right">
-                        ₱{weight.clothes > 0 ? (pricing?.clothesPricePerKg || 0).toFixed(2) : '0.00'}
+                        ₱{weight[key as keyof typeof weight] > 0 ? (isWeight ? price : price * weight[key as keyof typeof weight]).toFixed(2) : "0.00"}
                       </span>
                     </div>
                   </div>
-                )}
-                {order.orderType.blanketsLight && (
-                  <div>
-                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
-                      Light Blankets weight (kg) * — ₱{pricing?.blanketsLightPricePerKg || 0}/load (flat rate)
-                    </label>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={weight.blanketsLight}
-                        onChange={(e) => setWeight({ ...weight, blanketsLight: parseInt(e.target.value) || 0 })}
-                        className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                        required
-                      />
-                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100 min-w-[80px] text-right">
-                        ₱{weight.blanketsLight > 0 ? (pricing?.blanketsLightPricePerKg || 0).toFixed(2) : '0.00'}
-                      </span>
-                    </div>
-                  </div>
-                )}
-                {order.orderType.blanketsThick && (
-                  <div>
-                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
-                      Thick Blankets weight (kg) * — ₱{pricing?.blanketsThickPricePerKg || 0}/load (flat rate)
-                    </label>
-                    <div className="flex gap-2 items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={weight.blanketsThick}
-                        onChange={(e) => setWeight({ ...weight, blanketsThick: parseInt(e.target.value) || 0 })}
-                        className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                        required
-                      />
-                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100 min-w-[80px] text-right">
-                        ₱{weight.blanketsThick > 0 ? (pricing?.blanketsThickPricePerKg || 0).toFixed(2) : '0.00'}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
 
               {/* Total Price Display */}
@@ -1252,42 +1217,37 @@ function CreateOrderModal({
                 Laundry Type *
               </label>
               <div className="space-y-2">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.orderType.clothes}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      orderType: { ...formData.orderType, clothes: e.target.checked }
-                    })}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Clothes</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.orderType.blanketsLight}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      orderType: { ...formData.orderType, blanketsLight: e.target.checked }
-                    })}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Light Blankets</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.orderType.blanketsThick}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      orderType: { ...formData.orderType, blanketsThick: e.target.checked }
-                    })}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Thick Blankets</span>
-                </label>
+                <p className="text-xs font-medium text-slate-500 uppercase">Full Service / Drop Off</p>
+                {[
+                  { key: "regularClothes", label: "Regular Clothes", sub: "₱230 · max 7kg/load" },
+                  { key: "assortedClothes", label: "Assorted Color Clothes", sub: "₱230 · max 7kg/load" },
+                  { key: "towelBlankets", label: "Towel & Blankets", sub: "₱230 · max 5kg/load" },
+                  { key: "comforter", label: "Comforter (Small & Medium)", sub: "₱250/load" },
+                ].map(({ key, label, sub }) => (
+                  <label key={key} className="flex items-start gap-2 cursor-pointer">
+                    <input type="checkbox"
+                      checked={formData.orderType[key as keyof typeof formData.orderType]}
+                      onChange={(e) => setFormData({ ...formData, orderType: { ...formData.orderType, [key]: e.target.checked } })}
+                      className="w-4 h-4 mt-0.5 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <div><span className="text-sm text-slate-700 dark:text-slate-300">{label}</span><p className="text-xs text-slate-400">{sub}</p></div>
+                  </label>
+                ))}
+                <p className="text-xs font-medium text-slate-500 uppercase pt-2">Self-Service</p>
+                {[
+                  { key: "selfServiceWash", label: "Wash Only", sub: "₱80/session" },
+                  { key: "selfServiceSpin", label: "Spinning (10 mins)", sub: "₱35/session" },
+                  { key: "selfServiceDry", label: "Dry Only", sub: "₱120/session" },
+                ].map(({ key, label, sub }) => (
+                  <label key={key} className="flex items-start gap-2 cursor-pointer">
+                    <input type="checkbox"
+                      checked={formData.orderType[key as keyof typeof formData.orderType]}
+                      onChange={(e) => setFormData({ ...formData, orderType: { ...formData.orderType, [key]: e.target.checked } })}
+                      className="w-4 h-4 mt-0.5 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <div><span className="text-sm text-slate-700 dark:text-slate-300">{label}</span><p className="text-xs text-slate-400">{sub}</p></div>
+                  </label>
+                ))}
               </div>
             </div>
 
