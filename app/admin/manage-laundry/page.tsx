@@ -621,6 +621,10 @@ function ViewOrderModal({
     if (order.orderType.selfServiceWash && weight.selfServiceWash > 0) total += (pricing.selfServiceWashPrice ?? 80) * weight.selfServiceWash;
     if (order.orderType.selfServiceSpin && weight.selfServiceSpin > 0) total += (pricing.selfServiceSpinPrice ?? 35) * weight.selfServiceSpin;
     if (order.orderType.selfServiceDry && weight.selfServiceDry > 0) total += (pricing.selfServiceDryPrice ?? 120) * weight.selfServiceDry;
+    // Legacy backward compatibility
+    if (order.orderType.clothes && !order.orderType.regularClothes && weight.regularClothes > 0) total += pricing.regularClothesPrice ?? 230;
+    if (order.orderType.blanketsLight && !order.orderType.towelBlankets && weight.towelBlankets > 0) total += pricing.towelBlanketsPrice ?? 230;
+    if (order.orderType.blanketsThick && !order.orderType.comforter && weight.comforter > 0) total += pricing.comforterPrice ?? 250;
     return total;
   };
 
@@ -761,19 +765,39 @@ function ViewOrderModal({
                 Weight
               </label>
               <div className="grid grid-cols-2 gap-4">
-                {order.orderType.clothes && (
+                {(order.orderType.regularClothes || order.orderType.clothes) && (
                   <p className="text-slate-900 dark:text-slate-100">
-                    Clothes: {order.weight.clothes || 0} kg
+                    Regular Clothes: {order.weight?.regularClothes || order.weight?.clothes || 0} kg
                   </p>
                 )}
-                {order.orderType.blanketsLight && (
+                {order.orderType.assortedClothes && (
                   <p className="text-slate-900 dark:text-slate-100">
-                    Light Blankets: {order.weight.blanketsLight || 0} kg
+                    Assorted Clothes: {order.weight?.assortedClothes || 0} kg
                   </p>
                 )}
-                {order.orderType.blanketsThick && (
+                {(order.orderType.towelBlankets || order.orderType.blanketsLight) && (
                   <p className="text-slate-900 dark:text-slate-100">
-                    Thick Blankets: {order.weight.blanketsThick || 0} kg
+                    Towel & Blankets: {order.weight?.towelBlankets || order.weight?.blanketsLight || 0} kg
+                  </p>
+                )}
+                {(order.orderType.comforter || order.orderType.blanketsThick) && (
+                  <p className="text-slate-900 dark:text-slate-100">
+                    Comforter: {order.weight?.comforter || order.weight?.blanketsThick || 0} kg
+                  </p>
+                )}
+                {order.orderType.selfServiceWash && (
+                  <p className="text-slate-900 dark:text-slate-100">
+                    Wash Only: {order.weight?.selfServiceWash || 0} session(s)
+                  </p>
+                )}
+                {order.orderType.selfServiceSpin && (
+                  <p className="text-slate-900 dark:text-slate-100">
+                    Spinning: {order.weight?.selfServiceSpin || 0} session(s)
+                  </p>
+                )}
+                {order.orderType.selfServiceDry && (
+                  <p className="text-slate-900 dark:text-slate-100">
+                    Dry Only: {order.weight?.selfServiceDry || 0} session(s)
                   </p>
                 )}
               </div>
@@ -787,23 +811,43 @@ function ViewOrderModal({
                 Pricing
               </label>
               <div className="space-y-1">
-                {order.pricing.clothesPrice && (
+                {(order.pricing.regularClothesPrice || order.pricing.clothesPrice) ? (
                   <p className="text-slate-600 dark:text-slate-300">
-                    Clothes: ₱{order.pricing.clothesPrice.toFixed(2)}
+                    Regular Clothes: ₱{(order.pricing.regularClothesPrice || order.pricing.clothesPrice || 0).toFixed(2)}
                   </p>
-                )}
-                {order.pricing.blanketsLightPrice && (
+                ) : null}
+                {order.pricing.assortedClothesPrice ? (
                   <p className="text-slate-600 dark:text-slate-300">
-                    Light Blankets: ₱{order.pricing.blanketsLightPrice.toFixed(2)}
+                    Assorted Clothes: ₱{order.pricing.assortedClothesPrice.toFixed(2)}
                   </p>
-                )}
-                {order.pricing.blanketsThickPrice && (
+                ) : null}
+                {(order.pricing.towelBlanketsPrice || order.pricing.blanketsLightPrice) ? (
                   <p className="text-slate-600 dark:text-slate-300">
-                    Thick Blankets: ₱{order.pricing.blanketsThickPrice.toFixed(2)}
+                    Towel & Blankets: ₱{(order.pricing.towelBlanketsPrice || order.pricing.blanketsLightPrice || 0).toFixed(2)}
                   </p>
-                )}
+                ) : null}
+                {(order.pricing.comforterPrice || order.pricing.blanketsThickPrice) ? (
+                  <p className="text-slate-600 dark:text-slate-300">
+                    Comforter: ₱{(order.pricing.comforterPrice || order.pricing.blanketsThickPrice || 0).toFixed(2)}
+                  </p>
+                ) : null}
+                {order.pricing.selfServiceWashPrice ? (
+                  <p className="text-slate-600 dark:text-slate-300">
+                    Wash Only: ₱{order.pricing.selfServiceWashPrice.toFixed(2)}
+                  </p>
+                ) : null}
+                {order.pricing.selfServiceSpinPrice ? (
+                  <p className="text-slate-600 dark:text-slate-300">
+                    Spinning: ₱{order.pricing.selfServiceSpinPrice.toFixed(2)}
+                  </p>
+                ) : null}
+                {order.pricing.selfServiceDryPrice ? (
+                  <p className="text-slate-600 dark:text-slate-300">
+                    Dry Only: ₱{order.pricing.selfServiceDryPrice.toFixed(2)}
+                  </p>
+                ) : null}
                 <p className="text-lg font-bold text-slate-900 dark:text-slate-100 pt-2 border-t">
-                  Total: ₱{order.pricing.totalPrice.toFixed(2)}
+                  Total: ₱{(order.pricing?.totalPrice || 0).toFixed(2)}
                 </p>
               </div>
             </div>
