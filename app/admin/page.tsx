@@ -211,7 +211,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <MetricCard
                 title="Total Revenue"
-                value={`₱${(totalRevenue || 0).toLocaleString()}`}
+                value={`₱${totalRevenue.toLocaleString()}`}
                 change={revenueGrowth}
                 icon={DollarSign}
                 iconColor="text-green-600 dark:text-green-400"
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
               />
               <MetricCard
                 title="Total Laundry"
-                value={(totalOrders ?? 0).toString()}
+                value={totalOrders.toString()}
                 change={ordersGrowth}
                 icon={Package}
                 iconColor="text-blue-600 dark:text-blue-400"
@@ -227,7 +227,7 @@ export default function AdminDashboard() {
               />
               <MetricCard
                 title="Total Customers"
-                value={(totalCustomers ?? 0).toString()}
+                value={totalCustomers.toString()}
                 change={customersGrowth}
                 icon={Users}
                 iconColor="text-purple-600 dark:text-purple-400"
@@ -330,23 +330,52 @@ export default function AdminDashboard() {
                   Service Types
                 </h3>
                 <div className="space-y-3">
-                  {[
-                    { label: "Regular Clothes", value: serviceTypeDistribution.regularClothes ?? serviceTypeDistribution.clothes ?? 0, color: "bg-blue-600" },
-                    { label: "Assorted Clothes", value: serviceTypeDistribution.assortedClothes ?? 0, color: "bg-indigo-600" },
-                    { label: "Towel & Blankets", value: serviceTypeDistribution.towelBlankets ?? serviceTypeDistribution.blanketsLight ?? 0, color: "bg-purple-600" },
-                    { label: "Comforter", value: serviceTypeDistribution.comforter ?? serviceTypeDistribution.blanketsThick ?? 0, color: "bg-orange-600" },
-                    { label: "Self-Service", value: serviceTypeDistribution.selfService ?? 0, color: "bg-green-600" },
-                  ].map(({ label, value, color }) => (
-                    <div key={label}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-slate-600 dark:text-slate-400">{label}</span>
-                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{value ?? 0}%</span>
-                      </div>
-                      <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                        <div className={`${color} h-2 rounded-full transition-all duration-500`} style={{ width: `${value ?? 0}%` }} />
-                      </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Clothes</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {serviceTypeDistribution.clothes}%
+                      </span>
                     </div>
-                  ))}
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${serviceTypeDistribution.clothes}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-slate-600 dark:text-slate-400">
+                        Light Blankets
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {serviceTypeDistribution.blanketsLight}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                      <div
+                        className="bg-purple-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${serviceTypeDistribution.blanketsLight}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-slate-600 dark:text-slate-400">
+                        Thick Blankets
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {serviceTypeDistribution.blanketsThick}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                      <div
+                        className="bg-orange-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${serviceTypeDistribution.blanketsThick}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

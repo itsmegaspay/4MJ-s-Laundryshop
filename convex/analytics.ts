@@ -409,35 +409,22 @@ function calculateServiceTypeDistribution(orders: any[]): {
   clothes: number;
   blanketsLight: number;
   blanketsThick: number;
-  regularClothes: number;
-  assortedClothes: number;
-  towelBlankets: number;
-  comforter: number;
-  selfService: number;
 } {
-  let regularClothesCount = 0, assortedClothesCount = 0, towelBlanketsCount = 0;
-  let comforterCount = 0, selfServiceCount = 0;
+  let clothesCount = 0;
+  let blanketsLightCount = 0;
+  let blanketsThickCount = 0;
 
   orders.forEach((order) => {
-    if (order.orderType.regularClothes || order.orderType.clothes) regularClothesCount++;
-    if (order.orderType.assortedClothes) assortedClothesCount++;
-    if (order.orderType.towelBlankets || order.orderType.blanketsLight) towelBlanketsCount++;
-    if (order.orderType.comforter || order.orderType.blanketsThick) comforterCount++;
-    if (order.orderType.selfServiceWash || order.orderType.selfServiceSpin || order.orderType.selfServiceDry) selfServiceCount++;
+    if (order.orderType.clothes) clothesCount++;
+    if (order.orderType.blanketsLight) blanketsLightCount++;
+    if (order.orderType.blanketsThick) blanketsThickCount++;
   });
 
-  const total = regularClothesCount + assortedClothesCount + towelBlanketsCount + comforterCount + selfServiceCount || 1;
+  const total = clothesCount + blanketsLightCount + blanketsThickCount || 1;
 
   return {
-    // New fields
-    regularClothes: Math.round((regularClothesCount / total) * 100),
-    assortedClothes: Math.round((assortedClothesCount / total) * 100),
-    towelBlankets: Math.round((towelBlanketsCount / total) * 100),
-    comforter: Math.round((comforterCount / total) * 100),
-    selfService: Math.round((selfServiceCount / total) * 100),
-    // Legacy aliases
-    clothes: Math.round((regularClothesCount / total) * 100),
-    blanketsLight: Math.round((towelBlanketsCount / total) * 100),
-    blanketsThick: Math.round((comforterCount / total) * 100),
+    clothes: Math.round((clothesCount / total) * 100),
+    blanketsLight: Math.round((blanketsLightCount / total) * 100),
+    blanketsThick: Math.round((blanketsThickCount / total) * 100),
   };
 }
