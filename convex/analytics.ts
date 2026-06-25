@@ -167,7 +167,7 @@ export const getDashboardStats = query({
     const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
     const peakDayIndex = Object.entries(dayCount).sort((a,b) => b[1]-a[1])[0];
     const peakDay = peakDayIndex ? dayNames[parseInt(peakDayIndex[0])] : "N/A";
-    const peakDayOrders = peakDayIndex ? parseInt(peakDayIndex[1]) : 0;
+    const peakDayOrders = peakDayIndex ? Number(peakDayIndex[1]) : 0;
 
     // Avg revenue per order
     const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
