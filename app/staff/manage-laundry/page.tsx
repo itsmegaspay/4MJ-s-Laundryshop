@@ -9,6 +9,16 @@ import { Search, Plus, Eye, Calendar, Clock, ChevronLeft, ChevronRight } from "l
 import StaffSidebar from "@/components/Staffsidebar";
 import { useRouter } from "next/navigation";
 
+
+function formatName(name?: string | null): string {
+  if (!name) return "";
+  const parts = name.trim().split(" ");
+  if (parts.length < 2) return name;
+  const last = parts[parts.length - 1];
+  const first = parts.slice(0, -1).join(" ");
+  return `${last}, ${first}`;
+}
+
 export default function ManageLaundryPage() {
   const user = useQuery(api.users.getCurrentUser);
   const router = useRouter();
@@ -733,7 +743,7 @@ function ViewOrderModal({
             <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
               Customer
             </label>
-            <p className="text-slate-900 dark:text-slate-100">{order.customer?.name}</p>
+            <p className="text-slate-900 dark:text-slate-100">{formatName(order.customer?.name)}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">{order.customer?.email}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">{order.customer?.phone}</p>
           </div>
@@ -1003,8 +1013,8 @@ function CreateOrderModal({
       blanketsThick: false,
     },
     notes: "",
-    pickupDate: "",
-    pickupTime: "",
+    pickupDate: new Date().toISOString().split("T")[0],
+    pickupTime: (() => { const d = new Date(); d.setHours(d.getHours() + 2); return d.toTimeString().slice(0,5); })(),
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
@@ -1217,7 +1227,7 @@ function CreateOrderModal({
                 <option value="">Select a customer</option>
                 {customers.map((customer) => (
                   <option key={customer._id} value={customer._id}>
-                    {customer.name} - {customer.email}
+                    {formatName(customer.name)} - {customer.email}
                   </option>
                 ))}
               </select>

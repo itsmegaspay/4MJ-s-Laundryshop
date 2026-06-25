@@ -94,6 +94,7 @@ export default function AdminDashboard() {
     revenueByDay,
     ordersByDay,
     serviceTypeDistribution,
+    insights,
   } = dashboardStats;
 
   return (
@@ -380,7 +381,50 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Charts Section */}
+
+            {/* ── DA INSIGHTS / FORECASTING ─────────────────────────────── */}
+            {insights && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+                  📊 DA Insights &amp; Forecasting
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-700 p-5">
+                    <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Projected Next Period Revenue</p>
+                    <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">₱{(insights.forecastRevenue || 0).toLocaleString()}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Based on {insights.revenueGrowth >= 0 ? "+" : ""}{insights.revenueGrowth}% trend</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-700 p-5">
+                    <p className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide mb-1">Projected Next Period Orders</p>
+                    <p className="text-2xl font-bold text-purple-800 dark:text-purple-200">{insights.forecastOrders || 0} orders</p>
+                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Avg ₱{(insights.avgOrderValue || 0).toLocaleString()} per order</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-700 p-5">
+                    <p className="text-xs font-medium text-orange-600 dark:text-orange-400 uppercase tracking-wide mb-1">Busiest Day</p>
+                    <p className="text-2xl font-bold text-orange-800 dark:text-orange-200">{insights.peakDay || "N/A"}</p>
+                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">{insights.peakDayOrders || 0} orders on average</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-700 p-5">
+                    <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wide mb-1">Order Completion Rate</p>
+                    <p className="text-2xl font-bold text-green-800 dark:text-green-200">{insights.completionRate || 0}%</p>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">Of all orders completed successfully</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/20 rounded-lg border border-teal-200 dark:border-teal-700 p-5">
+                    <p className="text-xs font-medium text-teal-600 dark:text-teal-400 uppercase tracking-wide mb-1">Avg Order Value</p>
+                    <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">₱{(insights.avgOrderValue || 0).toLocaleString()}</p>
+                    <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">Revenue per laundry order</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/30 rounded-lg border border-slate-200 dark:border-slate-600 p-5">
+                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">💡 Business Tip</p>
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                      {(insights.completionRate || 0) >= 80 ? "Great completion rate! Focus on increasing volume." : (insights.revenueGrowth || 0) > 0 ? "Revenue is growing — keep the momentum!" : "Consider promotions to boost orders this period."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Charts Section */
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* Revenue Chart */}
               <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">

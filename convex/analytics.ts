@@ -148,6 +148,45 @@ export const getDashboardStats = query({
     // Service type distribution
     const serviceTypeDistribution = calculateServiceTypeDistribution(currentOrders);
 
+    // ── DA INSIGHTS / FORECASTING ──────────────────────────────────────────
+    // Simple linear forecast: project next period based on recent trend
+    const forecastRevenue = previousRevenue > 0
+      ? Math.round(totalRevenue * (1 + (totalRevenue - previousRevenue) / (previousRevenue || 1)))
+      : Math.round(totalRevenue * 1.1);
+
+    const forecastOrders = previousOrders.length > 0
+      ? Math.round(totalOrders * (1 + (totalOrders - previousOrders.length) / (previousOrders.length || 1)))
+      : Math.round(totalOrders * 1.1);
+
+    // Peak day insight
+    const dayCount: Record<number, number> = {};
+    currentOrders.forEach((o) => {
+      const day = new Date(o.createdAt).getDay();
+      dayCount[day] = (dayCount[day] || 0) + 1;
+    });
+    const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const peakDayIndex = Object.entries(dayCount).sort((a,b) => b[1]-a[1])[0];
+    const peakDay = peakDayIndex ? dayNames[parseInt(peakDayIndex[0])] : "N/A";
+    const peakDayOrders = peakDayIndex ? parseInt(peakDayIndex[1]) : 0;
+
+    // Avg revenue per order
+    const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+
+    // Completion rate
+    const completionRate = totalOrders > 0
+      ? Math.round((ordersByStatus.completed / totalOrders) * 100)
+      : 0;
+
+    const insights = {
+      forecastRevenue: Math.max(0, forecastRevenue),
+      forecastOrders: Math.max(0, forecastOrders),
+      peakDay,
+      peakDayOrders,
+      avgOrderValue,
+      completionRate,
+      revenueGrowth,
+    };
+
     return {
       totalRevenue,
       revenueGrowth,
@@ -163,6 +202,7 @@ export const getDashboardStats = query({
       revenueByDay,
       ordersByDay,
       serviceTypeDistribution,
+      insights,
     };
   },
 });

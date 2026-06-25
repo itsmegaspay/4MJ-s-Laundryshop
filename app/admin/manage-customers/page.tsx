@@ -8,6 +8,16 @@ import { Search, Plus, Edit, Trash2, Phone, Mail, User } from "lucide-react";
 import AdminSidebar from "@/components/Adminsidebar";
 import { useRouter } from "next/navigation";
 
+
+function formatName(name?: string | null): string {
+  if (!name) return "";
+  const parts = name.trim().split(" ");
+  if (parts.length < 2) return name;
+  const last = parts[parts.length - 1];
+  const first = parts.slice(0, -1).join(" ");
+  return `${last}, ${first}`;
+}
+
 export default function ManageCustomersPage() {
   const user = useQuery(api.users.getCurrentUser);
   const router = useRouter();
@@ -50,7 +60,7 @@ export default function ManageCustomersPage() {
       await createCustomer(formData);
       setIsAddModalOpen(false);
     } catch (error: any) {
-      throw error;
+      alert(error.message || "Failed to create customer");
     }
   };
 
@@ -65,7 +75,7 @@ export default function ManageCustomersPage() {
       await updateCustomer(formData);
       setEditingCustomer(null);
     } catch (error: any) {
-      throw error;
+      alert(error.message || "Failed to update customer");
     }
   };
 
@@ -171,7 +181,7 @@ export default function ManageCustomersPage() {
                               </div>
                               <div>
                                 <div className="font-medium text-slate-900 dark:text-slate-100">
-                                  {customer.name}
+                                  {formatName(customer.name)}
                                 </div>
                                 <div className="text-sm text-slate-500 dark:text-slate-400">
                                   Added {new Date(customer.createdAt).toLocaleDateString()}
@@ -274,8 +284,7 @@ function CustomerModal({
     phone: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-
+  
   // Check if email already exists (only when email changes and is valid format)
   const [emailToCheck, setEmailToCheck] = useState<string | null>(null);
   const existingEmailCustomer = useQuery(
@@ -416,15 +425,8 @@ function CustomerModal({
     }
 
     setIsSubmitting(true);
-    setSubmitError("");
     try {
       await onSubmit(formData);
-    } catch (error: any) {
-      const msg = error.message || "";
-      const clean = msg.includes("already exists")
-        ? msg.split("already exists")[0] + "already exists."
-        : msg.replace(/\[CONVEX.*?\]/g, "").replace("Server Error", "").trim() || "Failed to save customer. Please try again.";
-      setSubmitError(clean);
     } finally {
       setIsSubmitting(false);
     }
@@ -547,11 +549,6 @@ function CustomerModal({
           </div>
 
           <div className="flex gap-3 pt-4">
-            {submitError && (
-              <div className="w-full mb-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg text-sm text-red-600 dark:text-red-400">
-                {submitError}
-              </div>
-            )}
             <button
               type="button"
               onClick={onClose}
