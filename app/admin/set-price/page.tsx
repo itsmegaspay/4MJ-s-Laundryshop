@@ -87,15 +87,15 @@ export default function SetPricePage() {
     }
   };
 
-  const calculateExample = (weight: number) => {
+  const calculateExample = () => {
     const clothesPriceNum = parseInt(clothesPrice) || 0;
     const blanketsLightPriceNum = parseInt(blanketsLightPrice) || 0;
     const blanketsThickPriceNum = parseInt(blanketsThickPrice) || 0;
 
     return {
-      clothes: (clothesPriceNum * weight).toFixed(0),
-      blanketsLight: (blanketsLightPriceNum * weight).toFixed(0),
-      blanketsThick: (blanketsThickPriceNum * weight).toFixed(0),
+      clothes: clothesPriceNum.toFixed(0),
+      blanketsLight: blanketsLightPriceNum.toFixed(0),
+      blanketsThick: blanketsThickPriceNum.toFixed(0),
     };
   };
 
@@ -114,8 +114,7 @@ export default function SetPricePage() {
     return null;
   }
 
-  const exampleWeight = 5;
-  const examples = calculateExample(exampleWeight);
+  const examples = calculateExample();
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 flex">
@@ -279,7 +278,7 @@ export default function SetPricePage() {
                 {/* Example Calculations */}
                 <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-                    Example Calculations ({exampleWeight} kg each)
+                    Price Per Load
                   </h3>
 
                   <div className="space-y-3">
@@ -319,17 +318,7 @@ export default function SetPricePage() {
                       </div>
                     </div>
 
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-                          <DollarSign size={14} />
-                          <span>All Combined</span>
-                        </div>
-                        <span className="text-xl font-bold text-blue-900 dark:text-blue-100">
-                          ₱{(parseInt(examples.clothes) + parseInt(examples.blanketsLight) + parseInt(examples.blanketsThick)).toFixed(0)}
-                        </span>
-                      </div>
-                    </div>
+
                   </div>
                 </div>
 

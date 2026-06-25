@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
           day: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
+          timeZone: 'Asia/Manila',
         })
       : "To be determined";
 
@@ -172,12 +173,12 @@ export async function POST(request: NextRequest) {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🧺 4MJ's Laundry</h1>
+              <h1>🧺 NorthEnd Laundry</h1>
               <p style="margin: 10px 0 0 0; opacity: 0.9;">Your Trusted Laundry Service</p>
             </div>
             <div class="content">
               <h2 style="color: #1e293b; margin-top: 0;">Hello, ${customerName}! 👋</h2>
-              <p style="font-size: 16px;">Thank you for choosing 4MJ's Laundry! Your laundry has been successfully received and is now being processed.</p>
+              <p style="font-size: 16px;">Thank you for choosing NorthEnd Laundry! Your laundry has been successfully received and is now being processed.</p>
               
               <div class="tracking-id">
                 <h3>📋 Your Tracking ID</h3>
@@ -212,6 +213,7 @@ export async function POST(request: NextRequest) {
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
+                    timeZone: 'Asia/Manila',
                   })}</span>
                 </div>
               </div>
@@ -250,7 +252,7 @@ export async function POST(request: NextRequest) {
             </div>
             
             <div class="footer">
-              <p>© ${new Date().getFullYear()} 4MJ's Laundry. All rights reserved.</p>
+              <p>© ${new Date().getFullYear()} NorthEnd Laundry. All rights reserved.</p>
               <p style="margin: 5px 0 0 0;">This email was sent to ${to}</p>
             </div>
           </div>
@@ -260,7 +262,7 @@ export async function POST(request: NextRequest) {
 
     const result = await sendEmail({
       to,
-      subject: `Laundry Confirmed - ${orderId} | 4MJ's Laundry`,
+      subject: `Laundry Confirmed - ${orderId} | NorthEnd Laundry`,
       html,
     });
 
