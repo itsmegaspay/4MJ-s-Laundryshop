@@ -424,7 +424,7 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* Charts Section */
+            {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* Revenue Chart */}
               <div className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
