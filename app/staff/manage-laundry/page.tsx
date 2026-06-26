@@ -811,7 +811,7 @@ function ViewOrderModal({
                   </p>
                 )}
                 <p className="text-lg font-bold text-slate-900 dark:text-slate-100 pt-2 border-t">
-                  Total: ₱{order.pricing?.totalPrice || 0.toFixed(2)}
+                  Total: ₱{(order.pricing?.totalPrice || 0).toFixed(2)}
                 </p>
               </div>
             </div>
