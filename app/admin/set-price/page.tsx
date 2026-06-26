@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import AdminSidebar from "@/components/Adminsidebar";
-import { Save, DollarSign, Shirt, Bed } from "lucide-react";
+import { Save, Shirt, WashingMachine } from "lucide-react";
 
 export default function SetPricePage() {
   const user = useQuery(api.users.getCurrentUser);
@@ -13,341 +13,164 @@ export default function SetPricePage() {
   const updatePricing = useMutation(api.pricingConfig.updatePricing);
   const router = useRouter();
 
-  const [clothesPrice, setClothesPrice] = useState<string>("");
-  const [blanketsLightPrice, setBlanketsLightPrice] = useState<string>("");
-  const [blanketsThickPrice, setBlanketsThickPrice] = useState<string>("");
+  const [prices, setPrices] = useState({
+    regularClothesPrice: "230",
+    assortedClothesPrice: "230",
+    towelBlanketsPrice: "230",
+    comforterPrice: "250",
+    storageFeePerDay: "15",
+    selfServiceWashPrice: "80",
+    selfServiceSpinPrice: "35",
+    selfServiceDryPrice: "120",
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Redirect if not admin
   useEffect(() => {
     if (user === undefined) return;
-    if (user === null) {
-      router.push("/signin");
-      return;
-    }
-    if (user.role !== "admin") {
-      router.push("/staff");
-    }
+    if (user === null) { router.push("/signin"); return; }
+    if (user.role !== "admin") router.push("/staff");
   }, [user, router]);
 
-  // Load current pricing when it's available
   useEffect(() => {
     if (currentPricing) {
-      setClothesPrice(currentPricing.clothesPricePerKg.toString());
-      // Handle backward compatibility - use defaults if new fields don't exist yet
-      setBlanketsLightPrice((currentPricing.blanketsLightPricePerKg || 70).toString());
-      setBlanketsThickPrice((currentPricing.blanketsThickPricePerKg || 100).toString());
+      setPrices({
+        regularClothesPrice: String(currentPricing.regularClothesPrice ?? 230),
+        assortedClothesPrice: String(currentPricing.assortedClothesPrice ?? 230),
+        towelBlanketsPrice: String(currentPricing.towelBlanketsPrice ?? 230),
+        comforterPrice: String(currentPricing.comforterPrice ?? 250),
+        storageFeePerDay: String(currentPricing.storageFeePerDay ?? 15),
+        selfServiceWashPrice: String(currentPricing.selfServiceWashPrice ?? 80),
+        selfServiceSpinPrice: String(currentPricing.selfServiceSpinPrice ?? 35),
+        selfServiceDryPrice: String(currentPricing.selfServiceDryPrice ?? 120),
+      });
     }
   }, [currentPricing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccessMessage("");
-    setErrorMessage("");
-
-    const clothesPriceNum = parseInt(clothesPrice);
-    const blanketsLightPriceNum = parseInt(blanketsLightPrice);
-    const blanketsThickPriceNum = parseInt(blanketsThickPrice);
-
-    // Validation
-    if (isNaN(clothesPriceNum) || clothesPriceNum <= 0 || !Number.isInteger(clothesPriceNum)) {
-      setErrorMessage("Clothes price must be a positive whole number");
-      return;
-    }
-
-    if (isNaN(blanketsLightPriceNum) || blanketsLightPriceNum <= 0 || !Number.isInteger(blanketsLightPriceNum)) {
-      setErrorMessage("Light blankets price must be a positive whole number");
-      return;
-    }
-
-    if (isNaN(blanketsThickPriceNum) || blanketsThickPriceNum <= 0 || !Number.isInteger(blanketsThickPriceNum)) {
-      setErrorMessage("Thick blankets price must be a positive whole number");
-      return;
-    }
-
+    setSuccessMessage(""); setErrorMessage("");
+    const parsed: any = {};
+    for (const [k, v] of Object.entries(prices)) { parsed[k] = parseInt(v) || 0; }
     setIsSubmitting(true);
-
     try {
-      await updatePricing({
-        clothesPricePerKg: clothesPriceNum,
-        blanketsLightPricePerKg: blanketsLightPriceNum,
-        blanketsThickPricePerKg: blanketsThickPriceNum,
-      });
-
-      setSuccessMessage("✅ Pricing updated successfully!");
-      
-      // Clear success message after 3 seconds
+      await updatePricing(parsed);
+      setSuccessMessage("Pricing updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (error: any) {
-      setErrorMessage(`❌ Failed to update pricing: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const calculateExample = () => {
-    const clothesPriceNum = parseInt(clothesPrice) || 0;
-    const blanketsLightPriceNum = parseInt(blanketsLightPrice) || 0;
-    const blanketsThickPriceNum = parseInt(blanketsThickPrice) || 0;
-
-    return {
-      clothes: clothesPriceNum.toFixed(0),
-      blanketsLight: blanketsLightPriceNum.toFixed(0),
-      blanketsThick: blanketsThickPriceNum.toFixed(0),
-    };
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to update pricing");
+    } finally { setIsSubmitting(false); }
   };
 
   if (user === undefined || currentPricing === undefined) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite] mb-4" />
-          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
-        </div>
+    return <div className="flex min-h-screen items-center justify-center"><div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" /></div>;
+  }
+  if (user === null) return null;
+
+  const Field = ({ label, sub, field, unit = "/load" }: { label: string; sub?: string; field: string; unit?: string }) => (
+    <div className="flex items-center justify-between gap-4 py-3 border-b border-slate-100 dark:border-slate-700 last:border-0">
+      <div>
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{label}</p>
+        {sub && <p className="text-xs text-slate-500">{sub}</p>}
       </div>
-    );
-  }
-
-  if (user === null) {
-    return null;
-  }
-
-  const examples = calculateExample();
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-slate-500">₱</span>
+        <input type="number" min="0" step="1"
+          value={prices[field as keyof typeof prices]}
+          onChange={(e) => setPrices(p => ({ ...p, [field]: e.target.value }))}
+          className="w-24 px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded-lg text-right bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
+          required
+        />
+        <span className="text-xs text-slate-400 w-16">{unit}</span>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 flex">
       <AdminSidebar userName={user.name} userEmail={user.email} />
+      <main className="flex-1 overflow-auto p-8">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1">Set Price</h1>
+          <p className="text-slate-500 mb-6">Configure prices for all 4MJ's Laundry service categories</p>
 
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">
-          <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-                Set Price
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-1">
-                Configure the price per load for each laundry type
-              </p>
+          {successMessage && <div className="mb-4 p-4 bg-green-100 border border-green-300 rounded-lg text-green-800">✅ {successMessage}</div>}
+          {errorMessage && <div className="mb-4 p-4 bg-red-100 border border-red-300 rounded-lg text-red-800">❌ {errorMessage}</div>}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Full Service */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <Shirt size={18} className="text-blue-600" />
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Full Service / Drop Off</h2>
+              </div>
+              <Field label="Regular Clothes" sub="Max 7kg per load" field="regularClothesPrice" />
+              <Field label="Assorted Color Clothes" sub="Max 7kg per load" field="assortedClothesPrice" />
+              <Field label="Towel & Blankets" sub="Max 5kg per load" field="towelBlanketsPrice" />
+              <Field label="Comforter" sub="Small & Medium size" field="comforterPrice" />
+              <Field label="Storage Fee" sub="Charged after 2 days" field="storageFeePerDay" unit="/day" />
             </div>
 
-            {/* Success/Error Messages */}
-            {successMessage && (
-              <div className="mb-6 p-4 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
-                <p className="text-green-800 dark:text-green-200 font-medium">{successMessage}</p>
+            {/* Self Service */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <WashingMachine size={18} className="text-purple-600" />
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Self-Service</h2>
               </div>
-            )}
-
-            {errorMessage && (
-              <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-red-800 dark:text-red-200 font-medium">{errorMessage}</p>
-              </div>
-            )}
-
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Pricing Form */}
-              <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-6">
-                  Pricing Configuration
-                </h2>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Clothes Price */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      <div className="flex items-center gap-2">
-                        <Shirt size={16} />
-                        Clothes Price (per load)
-                      </div>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 font-medium">
-                        ₱
-                      </span>
-                      <input
-                        type="number"
-                        step="1"
-                        min="1"
-                        value={clothesPrice}
-                        onChange={(e) => setClothesPrice(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                        placeholder="50"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Light Blankets Price */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      <div className="flex items-center gap-2">
-                        <Bed size={16} />
-                        Light Blankets Price (per load)
-                      </div>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 font-medium">
-                        ₱
-                      </span>
-                      <input
-                        type="number"
-                        step="1"
-                        min="1"
-                        value={blanketsLightPrice}
-                        onChange={(e) => setBlanketsLightPrice(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                        placeholder="70"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Thick Blankets Price */}
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      <div className="flex items-center gap-2">
-                        <Bed size={16} className="text-slate-700 dark:text-slate-300" />
-                        Thick Blankets Price (per load)
-                      </div>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 font-medium">
-                        ₱
-                      </span>
-                      <input
-                        type="number"
-                        step="1"
-                        min="1"
-                        value={blanketsThickPrice}
-                        onChange={(e) => setBlanketsThickPrice(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                        placeholder="100"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Save size={20} />
-                    {isSubmitting ? "Saving..." : "Save Pricing"}
-                  </button>
-                </form>
-
-                {/* Current Active Pricing Display */}
-                {currentPricing && (
-                  <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-                      Currently Active Pricing
-                    </h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-600 dark:text-slate-400">Clothes:</span>
-                        <span className="font-semibold text-slate-900 dark:text-slate-100">
-                          ₱{currentPricing.clothesPricePerKg}/load
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-600 dark:text-slate-400">Light Blankets:</span>
-                        <span className="font-semibold text-slate-900 dark:text-slate-100">
-                          ₱{currentPricing.blanketsLightPricePerKg || 70}/load
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-600 dark:text-slate-400">Thick Blankets:</span>
-                        <span className="font-semibold text-slate-900 dark:text-slate-100">
-                          ₱{currentPricing.blanketsThickPricePerKg || 100}/load
-                        </span>
-                      </div>
-                      <div className="pt-2 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
-                        Last updated: {new Date(currentPricing.updatedAt).toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Price Examples & Info */}
-              <div className="space-y-6">
-                {/* Example Calculations */}
-                <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-                    Price Per Load
-                  </h3>
-
-                  <div className="space-y-3">
-                    <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                          <Shirt size={14} />
-                          <span>Clothes</span>
-                        </div>
-                        <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                          ₱{examples.clothes}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                          <Bed size={14} />
-                          <span>Light Blankets</span>
-                        </div>
-                        <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                          ₱{examples.blanketsLight}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                          <Bed size={14} />
-                          <span>Thick Blankets</span>
-                        </div>
-                        <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                          ₱{examples.blanketsThick}
-                        </span>
-                      </div>
-                    </div>
-
-
-                  </div>
-                </div>
-
-                {/* Info Box */}
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                  <h4 className="font-semibold text-amber-900 dark:text-amber-200 mb-2">
-                    Important Notes
-                  </h4>
-                  <ul className="space-y-2 text-sm text-amber-800 dark:text-amber-300">
-                    <li className="flex gap-2">
-                      <span>•</span>
-                      <span>Prices are automatically applied to new orders</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span>•</span>
-                      <span>Existing orders keep their original pricing</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span>•</span>
-                      <span>Changes are logged in the audit trail</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span>•</span>
-                      <span>Only administrators can modify prices</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+              <p className="text-xs text-slate-500 mb-4">Liquid detergent & fabcon not included · Max 7kg per load</p>
+              <Field label="Wash Only" field="selfServiceWashPrice" unit="/session" />
+              <Field label="Spinning (10 mins)" field="selfServiceSpinPrice" unit="/session" />
+              <Field label="Dry Only" field="selfServiceDryPrice" unit="/session" />
             </div>
+
+            <button type="submit" disabled={isSubmitting}
+              className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors disabled:opacity-50">
+              <Save size={18} />
+              {isSubmitting ? "Saving..." : "Save All Prices"}
+            </button>
+          </form>
+
+          {/* Current Prices Summary */}
+          <div className="mt-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-4">Currently Active Prices</h3>
+            <div className="space-y-1.5 text-sm">
+              <p className="text-xs font-medium text-slate-400 uppercase mt-2 mb-1">Full Service</p>
+              {([
+                ["Regular Clothes", currentPricing.regularClothesPrice ?? 230, "/load"],
+                ["Assorted Color Clothes", currentPricing.assortedClothesPrice ?? 230, "/load"],
+                ["Towel & Blankets", currentPricing.towelBlanketsPrice ?? 230, "/load"],
+                ["Comforter", currentPricing.comforterPrice ?? 250, "/load"],
+                ["Storage Fee", currentPricing.storageFeePerDay ?? 15, "/day"],
+              ] as [string, number, string][]).map(([l, v, u]) => (
+                <div key={l} className="flex justify-between">
+                  <span className="text-slate-600 dark:text-slate-400">{l}</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">₱{v}{u}</span>
+                </div>
+              ))}
+              <p className="text-xs font-medium text-slate-400 uppercase mt-3 mb-1">Self-Service</p>
+              {([
+                ["Wash Only", currentPricing.selfServiceWashPrice ?? 80, "/session"],
+                ["Spinning (10 mins)", currentPricing.selfServiceSpinPrice ?? 35, "/session"],
+                ["Dry Only", currentPricing.selfServiceDryPrice ?? 120, "/session"],
+              ] as [string, number, string][]).map(([l, v, u]) => (
+                <div key={l} className="flex justify-between">
+                  <span className="text-slate-600 dark:text-slate-400">{l}</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">₱{v}{u}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-4">
+            <h4 className="font-semibold text-amber-900 dark:text-amber-200 mb-2">Important Notes</h4>
+            <ul className="space-y-1 text-sm text-amber-800 dark:text-amber-300">
+              <li>• Prices are automatically applied to new orders</li>
+              <li>• Existing orders keep their original pricing</li>
+              <li>• Changes are logged in the audit trail</li>
+              <li>• Only administrators can modify prices</li>
+            </ul>
           </div>
         </div>
       </main>

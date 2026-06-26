@@ -34,11 +34,21 @@ export default defineSchema({
     orderId: v.string(), // LND-YYYYMMDD-XXX
     customerId: v.id("customers"),
     
-    // Order Details
+    // Order Details - new service types (old ones kept as optional for backward compat)
     orderType: v.object({
-      clothes: v.boolean(),
-      blanketsLight: v.boolean(),
-      blanketsThick: v.boolean(),
+      // Full Service / Drop Off
+      regularClothes: v.optional(v.boolean()),
+      assortedClothes: v.optional(v.boolean()),
+      towelBlankets: v.optional(v.boolean()),
+      comforter: v.optional(v.boolean()),
+      // Self-Service
+      selfServiceWash: v.optional(v.boolean()),
+      selfServiceSpin: v.optional(v.boolean()),
+      selfServiceDry: v.optional(v.boolean()),
+      // Legacy (kept for old orders)
+      clothes: v.optional(v.boolean()),
+      blanketsLight: v.optional(v.boolean()),
+      blanketsThick: v.optional(v.boolean()),
     }),
     
     status: v.union(
@@ -51,12 +61,29 @@ export default defineSchema({
     
     // Weight & Pricing (filled when status = "ready")
     weight: v.optional(v.object({
+      regularClothes: v.optional(v.number()),
+      assortedClothes: v.optional(v.number()),
+      towelBlankets: v.optional(v.number()),
+      comforter: v.optional(v.number()),
+      selfServiceWash: v.optional(v.number()),
+      selfServiceSpin: v.optional(v.number()),
+      selfServiceDry: v.optional(v.number()),
+      // Legacy
       clothes: v.optional(v.number()),
       blanketsLight: v.optional(v.number()),
       blanketsThick: v.optional(v.number()),
     })),
     
     pricing: v.optional(v.object({
+      regularClothesPrice: v.optional(v.number()),
+      assortedClothesPrice: v.optional(v.number()),
+      towelBlanketsPrice: v.optional(v.number()),
+      comforterPrice: v.optional(v.number()),
+      selfServiceWashPrice: v.optional(v.number()),
+      selfServiceSpinPrice: v.optional(v.number()),
+      selfServiceDryPrice: v.optional(v.number()),
+      storageFee: v.optional(v.number()),
+      // Legacy
       clothesPrice: v.optional(v.number()),
       blanketsLightPrice: v.optional(v.number()),
       blanketsThickPrice: v.optional(v.number()),
@@ -100,10 +127,20 @@ export default defineSchema({
     .index("by_payment_status", ["paymentStatus"]),
   
   pricingConfig: defineTable({
-    clothesPricePerKg: v.number(),
-    blanketsLightPricePerKg: v.number(),
-    blanketsThickPricePerKg: v.number(),
-    currency: v.string(), // "PHP"
+    // New service types
+    regularClothesPrice: v.optional(v.number()),
+    assortedClothesPrice: v.optional(v.number()),
+    towelBlanketsPrice: v.optional(v.number()),
+    comforterPrice: v.optional(v.number()),
+    storageFeePerDay: v.optional(v.number()),
+    selfServiceWashPrice: v.optional(v.number()),
+    selfServiceSpinPrice: v.optional(v.number()),
+    selfServiceDryPrice: v.optional(v.number()),
+    // Legacy fields
+    clothesPricePerKg: v.optional(v.number()),
+    blanketsLightPricePerKg: v.optional(v.number()),
+    blanketsThickPricePerKg: v.optional(v.number()),
+    currency: v.string(),
     updatedAt: v.number(),
     updatedBy: v.id("users"),
   }),
