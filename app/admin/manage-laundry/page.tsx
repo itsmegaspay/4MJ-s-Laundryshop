@@ -1205,49 +1205,7 @@ function CreateOrderModal({
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Laundry Type *
-              </label>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.orderType.clothes}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      orderType: { ...formData.orderType, clothes: e.target.checked }
-                    })}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Regular / Assorted Color Clothes</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.orderType.blanketsLight}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      orderType: { ...formData.orderType, blanketsLight: e.target.checked }
-                    })}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Towel &amp; Blankets</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.orderType.blanketsThick}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      orderType: { ...formData.orderType, blanketsThick: e.target.checked }
-                    })}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-700 dark:text-slate-300">Comforter (Small &amp; Medium)</span>
-                </label>
-              </div>
-            </div>
+
 
             {/* Date and Time Picker with Better UI */}
             <div className="space-y-3">
