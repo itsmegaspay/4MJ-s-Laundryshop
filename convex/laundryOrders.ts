@@ -67,21 +67,31 @@ export const createOrder = mutation({
   args: {
     customerId: v.id("customers"),
     orderType: v.object({
-      clothes: v.boolean(),
-      blanketsLight: v.boolean(),
-      blanketsThick: v.boolean(),
+      // New service types
+      regularClothes: v.optional(v.boolean()),
+      assortedClothes: v.optional(v.boolean()),
+      towelBlankets: v.optional(v.boolean()),
+      comforter: v.optional(v.boolean()),
+      selfServiceWash: v.optional(v.boolean()),
+      selfServiceSpin: v.optional(v.boolean()),
+      selfServiceDry: v.optional(v.boolean()),
+      // Legacy
+      clothes: v.optional(v.boolean()),
+      blanketsLight: v.optional(v.boolean()),
+      blanketsThick: v.optional(v.boolean()),
     }),
     notes: v.optional(v.string()),
     expectedPickupDate: v.optional(v.number()),
-    orderId: v.optional(v.string()), // Allow passing in a pre-generated orderId
+    orderId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const currentUser = await getCurrentUser(ctx);
 
-    // Validate order type
-    if (!args.orderType.clothes && !args.orderType.blanketsLight && !args.orderType.blanketsThick) {
-      throw new Error("At least one order type must be selected");
-    }
+    const ot = args.orderType as any;
+    const hasService = ot.regularClothes || ot.assortedClothes || ot.towelBlankets || ot.comforter ||
+      ot.selfServiceWash || ot.selfServiceSpin || ot.selfServiceDry ||
+      ot.clothes || ot.blanketsLight || ot.blanketsThick;
+    if (!hasService) throw new Error("At least one service type must be selected");
 
     // Verify customer exists
     const customer = await ctx.db.get(args.customerId);
@@ -167,13 +177,19 @@ export const updateOrderStatus = mutation({
       v.literal("completed"),
       v.literal("cancelled")
     ),
-    weight: v.optional(
-      v.object({
-        clothes: v.optional(v.number()),
-        blanketsLight: v.optional(v.number()),
-        blanketsThick: v.optional(v.number()),
-      })
-    ),
+    weight: v.optional(v.object({
+      regularClothes: v.optional(v.number()),
+      assortedClothes: v.optional(v.number()),
+      towelBlankets: v.optional(v.number()),
+      comforter: v.optional(v.number()),
+      selfServiceWash: v.optional(v.number()),
+      selfServiceSpin: v.optional(v.number()),
+      selfServiceDry: v.optional(v.number()),
+      // Legacy
+      clothes: v.optional(v.number()),
+      blanketsLight: v.optional(v.number()),
+      blanketsThick: v.optional(v.number()),
+    })),
     cancellationReason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -186,57 +202,58 @@ export const updateOrderStatus = mutation({
     const oldStatus = order.status;
     const now = Date.now();
 
-    // Prepare update object
     const updates: Partial<Doc<"laundryOrders">> = {
       status: args.newStatus,
       updatedAt: now,
       updatedBy: currentUser._id,
     };
 
-    // Track timestamp based on new status
     if (args.newStatus === "in-progress" && !order.inProgressAt) {
       updates.inProgressAt = now;
     }
 
-    // If marking as ready, validate and calculate pricing
+    // If marking as ready, calculate pricing
     if (args.newStatus === "ready") {
-      if (!order.readyAt) {
-        updates.readyAt = now;
-      }
+      if (!order.readyAt) updates.readyAt = now;
 
-      if (!args.weight || (!args.weight.clothes && !args.weight.blanketsLight && !args.weight.blanketsThick)) {
-        throw new Error("Weight is required when marking order as ready");
-      }
+      const w = args.weight as any;
+      const ot = order.orderType as any;
+      const hasWeight = w && (w.regularClothes || w.assortedClothes || w.towelBlankets || w.comforter ||
+        w.selfServiceWash || w.selfServiceSpin || w.selfServiceDry || w.clothes || w.blanketsLight || w.blanketsThick);
+      if (!hasWeight) throw new Error("Weight/loads is required when marking order as ready");
 
-      // Get pricing config
-      const pricing = await ctx.db.query("pricingConfig").first();
-      const clothesPrice = pricing?.clothesPricePerKg || 50;
-      const blanketsLightPrice = pricing?.blanketsLightPricePerKg || 70;
-      const blanketsThickPrice = pricing?.blanketsThickPricePerKg || 100;
+      const pricing: any = await ctx.db.query("pricingConfig").first();
+      const p = {
+        regularClothes: pricing?.regularClothesPrice ?? 230,
+        assortedClothes: pricing?.assortedClothesPrice ?? 230,
+        towelBlankets: pricing?.towelBlanketsPrice ?? 230,
+        comforter: pricing?.comforterPrice ?? 250,
+        selfServiceWash: pricing?.selfServiceWashPrice ?? 80,
+        selfServiceSpin: pricing?.selfServiceSpinPrice ?? 35,
+        selfServiceDry: pricing?.selfServiceDryPrice ?? 120,
+        // Legacy fallback
+        clothes: pricing?.regularClothesPrice ?? pricing?.clothesPricePerKg ?? 230,
+        blanketsLight: pricing?.towelBlanketsPrice ?? pricing?.blanketsLightPricePerKg ?? 230,
+        blanketsThick: pricing?.comforterPrice ?? pricing?.blanketsThickPricePerKg ?? 250,
+      };
 
       let totalPrice = 0;
       const priceBreakdown: any = {};
 
-      if (args.weight.clothes && order.orderType.clothes) {
-        priceBreakdown.clothesPrice = args.weight.clothes * clothesPrice;
-        totalPrice += priceBreakdown.clothesPrice;
-      }
+      if (w.regularClothes && (ot.regularClothes || ot.clothes)) { priceBreakdown.regularClothesPrice = w.regularClothes * p.regularClothes; totalPrice += priceBreakdown.regularClothesPrice; }
+      if (w.assortedClothes && ot.assortedClothes) { priceBreakdown.assortedClothesPrice = w.assortedClothes * p.assortedClothes; totalPrice += priceBreakdown.assortedClothesPrice; }
+      if (w.towelBlankets && (ot.towelBlankets || ot.blanketsLight)) { priceBreakdown.towelBlanketsPrice = w.towelBlankets * p.towelBlankets; totalPrice += priceBreakdown.towelBlanketsPrice; }
+      if (w.comforter && (ot.comforter || ot.blanketsThick)) { priceBreakdown.comforterPrice = w.comforter * p.comforter; totalPrice += priceBreakdown.comforterPrice; }
+      if (w.selfServiceWash && ot.selfServiceWash) { priceBreakdown.selfServiceWashPrice = w.selfServiceWash * p.selfServiceWash; totalPrice += priceBreakdown.selfServiceWashPrice; }
+      if (w.selfServiceSpin && ot.selfServiceSpin) { priceBreakdown.selfServiceSpinPrice = w.selfServiceSpin * p.selfServiceSpin; totalPrice += priceBreakdown.selfServiceSpinPrice; }
+      if (w.selfServiceDry && ot.selfServiceDry) { priceBreakdown.selfServiceDryPrice = w.selfServiceDry * p.selfServiceDry; totalPrice += priceBreakdown.selfServiceDryPrice; }
+      // Legacy
+      if (w.clothes && ot.clothes && !ot.regularClothes) { priceBreakdown.clothesPrice = w.clothes * p.clothes; totalPrice += priceBreakdown.clothesPrice; }
+      if (w.blanketsLight && ot.blanketsLight && !ot.towelBlankets) { priceBreakdown.blanketsLightPrice = w.blanketsLight * p.blanketsLight; totalPrice += priceBreakdown.blanketsLightPrice; }
+      if (w.blanketsThick && ot.blanketsThick && !ot.comforter) { priceBreakdown.blanketsThickPrice = w.blanketsThick * p.blanketsThick; totalPrice += priceBreakdown.blanketsThickPrice; }
 
-      if (args.weight.blanketsLight && order.orderType.blanketsLight) {
-        priceBreakdown.blanketsLightPrice = args.weight.blanketsLight * blanketsLightPrice;
-        totalPrice += priceBreakdown.blanketsLightPrice;
-      }
-
-      if (args.weight.blanketsThick && order.orderType.blanketsThick) {
-        priceBreakdown.blanketsThickPrice = args.weight.blanketsThick * blanketsThickPrice;
-        totalPrice += priceBreakdown.blanketsThickPrice;
-      }
-
-      updates.weight = args.weight;
-      updates.pricing = {
-        ...priceBreakdown,
-        totalPrice,
-      };
+      updates.weight = args.weight as any;
+      updates.pricing = { ...priceBreakdown, totalPrice };
     }
 
     // If marking as completed
