@@ -1205,7 +1205,51 @@ function CreateOrderModal({
               </select>
             </div>
 
-
+            {/* Service Type */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Service Type *
+              </label>
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Full Service / Drop Off</p>
+                {[
+                  { key: "regularClothes", label: "Regular Clothes", sub: "Max 7kg/load" },
+                  { key: "assortedClothes", label: "Assorted Color Clothes", sub: "Max 7kg/load" },
+                  { key: "towelBlankets", label: "Towel & Blankets", sub: "Max 5kg/load" },
+                  { key: "comforter", label: "Comforter (Small & Medium)", sub: "" },
+                ].map(({ key, label, sub }) => (
+                  <label key={key} className="flex items-start gap-2 cursor-pointer">
+                    <input type="checkbox"
+                      checked={formData.orderType[key as keyof typeof formData.orderType]}
+                      onChange={(e) => setFormData({ ...formData, orderType: { ...formData.orderType, [key]: e.target.checked } })}
+                      className="w-4 h-4 mt-0.5 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <div>
+                      <span className="text-sm text-slate-700 dark:text-slate-300">{label}</span>
+                      {sub && <p className="text-xs text-slate-400">{sub}</p>}
+                    </div>
+                  </label>
+                ))}
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide pt-2">Self-Service</p>
+                {[
+                  { key: "selfServiceWash", label: "Wash Only", sub: "₱80/session" },
+                  { key: "selfServiceSpin", label: "Spinning (10 mins)", sub: "₱35/session" },
+                  { key: "selfServiceDry", label: "Dry Only", sub: "₱120/session" },
+                ].map(({ key, label, sub }) => (
+                  <label key={key} className="flex items-start gap-2 cursor-pointer">
+                    <input type="checkbox"
+                      checked={formData.orderType[key as keyof typeof formData.orderType]}
+                      onChange={(e) => setFormData({ ...formData, orderType: { ...formData.orderType, [key]: e.target.checked } })}
+                      className="w-4 h-4 mt-0.5 text-purple-600 rounded focus:ring-purple-500"
+                    />
+                    <div>
+                      <span className="text-sm text-slate-700 dark:text-slate-300">{label}</span>
+                      <p className="text-xs text-slate-400">{sub}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
 
             {/* Date and Time Picker with Better UI */}
             <div className="space-y-3">
