@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🧺 NorthEnd Laundry</h1>
+              <h1>🧺 4MJ's Laundry</h1>
               <p style="margin: 10px 0 0 0; opacity: 0.9;">Your Trusted Laundry Service</p>
             </div>
             <div class="content">
@@ -282,8 +282,8 @@ export async function POST(request: NextRequest) {
             </div>
             
             <div class="footer">
-              <p>Thank you for choosing NorthEnd Laundry!</p>
-              <p style="margin: 5px 0 0 0;">© ${new Date().getFullYear()} NorthEnd Laundry. All rights reserved.</p>
+              <p>Thank you for choosing 4MJ's Laundry!</p>
+              <p style="margin: 5px 0 0 0;">© ${new Date().getFullYear()} 4MJ's Laundry. All rights reserved.</p>
               <p style="margin: 5px 0 0 0;">This email was sent to ${to}</p>
             </div>
           </div>
@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
     // Send the email
     const result = await sendEmail({
       to,
-      subject: `Your Laundry is Ready for Pickup! - Order ${orderId} | NorthEnd Laundry`,
+      subject: `Your Laundry is Ready for Pickup! - Order ${orderId} | 4MJ's Laundry`,
       html,
     });
 

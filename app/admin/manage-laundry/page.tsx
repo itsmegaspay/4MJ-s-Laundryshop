@@ -730,7 +730,7 @@ function ViewOrderModal({
             <div>
               <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                 Laundry ID
-              </label>
+              </label> 
               <p className="text-slate-900 dark:text-slate-100 font-medium">{order.orderId}</p>
             </div>
             <div>
