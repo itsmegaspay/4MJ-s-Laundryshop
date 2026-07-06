@@ -98,25 +98,28 @@ export const getDashboardStats = query({
         : 0;
 
     // Calculate average turnaround time (in hours)
-    const completedOrders = currentOrders.filter((o) => o.completedAt);
+    // Uses readyAt if available (order marked ready), falls back to completedAt
+    const ordersWithTurnaround = currentOrders.filter((o) => o.readyAt || o.completedAt);
     const avgTurnaroundTime =
-      completedOrders.length > 0
+      ordersWithTurnaround.length > 0
         ? Math.round(
-            completedOrders.reduce((sum, order) => {
-              const duration = order.completedAt! - order.createdAt;
-              return sum + duration / 3600000; // Convert to hours
-            }, 0) / completedOrders.length
+            ordersWithTurnaround.reduce((sum, order) => {
+              const endTime = order.readyAt || order.completedAt!;
+              const duration = endTime - order.createdAt;
+              return sum + duration / 3600000; // Convert ms to hours
+            }, 0) / ordersWithTurnaround.length
           )
         : 0;
 
-    const previousCompletedOrders = previousOrders.filter((o) => o.completedAt);
+    const previousOrdersWithTurnaround = previousOrders.filter((o) => o.readyAt || o.completedAt);
     const previousAvgTurnaround =
-      previousCompletedOrders.length > 0
+      previousOrdersWithTurnaround.length > 0
         ? Math.round(
-            previousCompletedOrders.reduce((sum, order) => {
-              const duration = order.completedAt! - order.createdAt;
+            previousOrdersWithTurnaround.reduce((sum, order) => {
+              const endTime = order.readyAt || order.completedAt!;
+              const duration = endTime - order.createdAt;
               return sum + duration / 3600000;
-            }, 0) / previousCompletedOrders.length
+            }, 0) / previousOrdersWithTurnaround.length
           )
         : 0;
 
