@@ -177,6 +177,58 @@ export const getDashboardStats = query({
       ? Math.round((ordersByStatus.completed / totalOrders) * 100)
       : 0;
 
+    // ── WATER CONSUMPTION ─────────────────────────────────────────────────
+    // Water usage per service type (liters per load):
+    // Regular/Assorted Clothes: ~50L/load (7kg machine)
+    // Towel & Blankets: ~60L/load (5kg, heavier items)
+    // Comforter: ~70L/load (large items)
+    // Self-Service Wash: ~45L/session
+    // Self-Service Spin: ~5L/session
+    // Self-Service Dry: ~0L (dryer, no water)
+    // 1 drum = 200 liters
+    const WATER_PER_SERVICE: Record<string, number> = {
+      regularClothes: 50, assortedClothes: 50, clothes: 50,
+      towelBlankets: 60, blanketsLight: 60,
+      comforter: 70, blanketsThick: 70,
+      selfServiceWash: 45, selfServiceSpin: 5, selfServiceDry: 0,
+    };
+
+    let totalWaterLiters = 0;
+    const waterByService: Record<string, number> = {};
+    currentOrders.forEach((o) => {
+      const ot = o.orderType as any;
+      const w = o.weight as any;
+      Object.entries(WATER_PER_SERVICE).forEach(([key, litersPerLoad]) => {
+        if (ot?.[key]) {
+          const loads = w?.[key] || 1;
+          const used = litersPerLoad * loads;
+          waterByService[key] = (waterByService[key] || 0) + used;
+          totalWaterLiters += used;
+        }
+      });
+    });
+    const totalDrums = Math.ceil(totalWaterLiters / 200);
+
+    // Water per day (for the period)
+    const periodDays = timeRange === "today" ? 1 : timeRange === "week" ? 7 : timeRange === "month" ? 30 : 365;
+    const avgWaterPerDay = totalDrums > 0 ? Math.round((totalWaterLiters / periodDays)) : 0;
+    const avgDrumsPerDay = Math.ceil(avgWaterPerDay / 200);
+
+    const waterConsumption = {
+      totalLiters: Math.round(totalWaterLiters),
+      totalDrums,
+      avgWaterPerDay,
+      avgDrumsPerDay,
+      byService: {
+        regularClothes: Math.round(waterByService.regularClothes || waterByService.clothes || 0),
+        assortedClothes: Math.round(waterByService.assortedClothes || 0),
+        towelBlankets: Math.round(waterByService.towelBlankets || waterByService.blanketsLight || 0),
+        comforter: Math.round(waterByService.comforter || waterByService.blanketsThick || 0),
+        selfServiceWash: Math.round(waterByService.selfServiceWash || 0),
+        selfServiceSpin: Math.round(waterByService.selfServiceSpin || 0),
+      },
+    };
+
     const insights = {
       forecastRevenue: Math.max(0, forecastRevenue),
       forecastOrders: Math.max(0, forecastOrders),
@@ -203,6 +255,7 @@ export const getDashboardStats = query({
       ordersByDay,
       serviceTypeDistribution,
       insights,
+      waterConsumption,
     };
   },
 });

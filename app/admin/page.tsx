@@ -95,6 +95,7 @@ export default function AdminDashboard() {
     ordersByDay,
     serviceTypeDistribution,
     insights,
+    waterConsumption,
   } = dashboardStats;
 
   return (
@@ -333,7 +334,7 @@ export default function AdminDashboard() {
                 <div className="space-y-3">
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Clothes</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Regular / Assorted Clothes</span>
                       <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {serviceTypeDistribution.clothes}%
                       </span>
@@ -348,7 +349,7 @@ export default function AdminDashboard() {
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm text-slate-600 dark:text-slate-400">
-                        Light Blankets
+                        Towel &amp; Blankets
                       </span>
                       <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {serviceTypeDistribution.blanketsLight}%
@@ -364,7 +365,7 @@ export default function AdminDashboard() {
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm text-slate-600 dark:text-slate-400">
-                        Thick Blankets
+                        Comforter
                       </span>
                       <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                         {serviceTypeDistribution.blanketsThick}%
@@ -389,37 +390,85 @@ export default function AdminDashboard() {
                   📊 DA Insights &amp; Forecasting
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-700 p-5">
-                    <p className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-1">Projected Next Period Revenue</p>
-                    <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">₱{(insights.forecastRevenue || 0).toLocaleString()}</p>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Based on {insights.revenueGrowth >= 0 ? "+" : ""}{insights.revenueGrowth}% trend</p>
+                  {/* Green: Good metrics */}
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 rounded-lg border border-green-300 dark:border-green-700 p-5">
+                    <p className="text-xs font-medium text-green-700 dark:text-green-400 uppercase tracking-wide mb-1">✅ Completion Rate</p>
+                    <p className={`text-2xl font-bold ${(insights.completionRate||0)>=80?"text-green-700 dark:text-green-300":(insights.completionRate||0)>=50?"text-orange-600 dark:text-orange-300":"text-red-600 dark:text-red-300"}`}>{insights.completionRate||0}%</p>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">Of all services completed</p>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-700 p-5">
-                    <p className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide mb-1">Projected Next Period Orders</p>
-                    <p className="text-2xl font-bold text-purple-800 dark:text-purple-200">{insights.forecastOrders || 0} orders</p>
-                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Avg ₱{(insights.avgOrderValue || 0).toLocaleString()} per order</p>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 rounded-lg border border-green-300 dark:border-green-700 p-5">
+                    <p className="text-xs font-medium text-green-700 dark:text-green-400 uppercase tracking-wide mb-1">✅ Projected Revenue</p>
+                    <p className={`text-2xl font-bold ${(insights.revenueGrowth||0)>=0?"text-green-700 dark:text-green-300":"text-red-600 dark:text-red-300"}`}>₱{(insights.forecastRevenue||0).toLocaleString()}</p>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">Trend: {insights.revenueGrowth>=0?"+":""}{insights.revenueGrowth}%</p>
                   </div>
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-700 p-5">
-                    <p className="text-xs font-medium text-orange-600 dark:text-orange-400 uppercase tracking-wide mb-1">Busiest Day</p>
-                    <p className="text-2xl font-bold text-orange-800 dark:text-orange-200">{insights.peakDay || "N/A"}</p>
-                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">{insights.peakDayOrders || 0} orders on average</p>
+                  {/* Orange: Watch metrics */}
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border border-orange-300 dark:border-orange-700 p-5">
+                    <p className="text-xs font-medium text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-1">⚠️ Busiest Day</p>
+                    <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{insights.peakDay||"N/A"}</p>
+                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">{insights.peakDayOrders||0} services on avg — prepare staff</p>
                   </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-700 p-5">
-                    <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wide mb-1">Order Completion Rate</p>
-                    <p className="text-2xl font-bold text-green-800 dark:text-green-200">{insights.completionRate || 0}%</p>
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">Of all orders completed successfully</p>
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border border-orange-300 dark:border-orange-700 p-5">
+                    <p className="text-xs font-medium text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-1">⚠️ Projected Services</p>
+                    <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{insights.forecastOrders||0}</p>
+                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Avg ₱{(insights.avgOrderValue||0).toLocaleString()} per service</p>
                   </div>
-                  <div className="bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/20 rounded-lg border border-teal-200 dark:border-teal-700 p-5">
-                    <p className="text-xs font-medium text-teal-600 dark:text-teal-400 uppercase tracking-wide mb-1">Avg Order Value</p>
-                    <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">₱{(insights.avgOrderValue || 0).toLocaleString()}</p>
-                    <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">Revenue per laundry order</p>
+                  {/* Red: Alert metrics */}
+                  <div className={`bg-gradient-to-br rounded-lg border p-5 ${(insights.revenueGrowth||0)<0?"from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 border-red-300 dark:border-red-700":"from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 border-green-300 dark:border-green-700"}`}>
+                    <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${(insights.revenueGrowth||0)<0?"text-red-700 dark:text-red-400":"text-green-700 dark:text-green-400"}`}>{(insights.revenueGrowth||0)<0?"🔴 Revenue Declining":"🟢 Revenue Growing"}</p>
+                    <p className={`text-2xl font-bold ${(insights.revenueGrowth||0)<0?"text-red-700 dark:text-red-300":"text-green-700 dark:text-green-300"}`}>{insights.revenueGrowth>=0?"+":""}{insights.revenueGrowth}%</p>
+                    <p className={`text-xs mt-1 ${(insights.revenueGrowth||0)<0?"text-red-600 dark:text-red-400":"text-green-600 dark:text-green-400"}`}>{(insights.revenueGrowth||0)<0?"Action needed to recover revenue":"Keep up the great work!"}</p>
                   </div>
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/30 rounded-lg border border-slate-200 dark:border-slate-600 p-5">
                     <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">💡 Business Tip</p>
                     <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                      {(insights.completionRate || 0) >= 80 ? "Great completion rate! Focus on increasing volume." : (insights.revenueGrowth || 0) > 0 ? "Revenue is growing — keep the momentum!" : "Consider promotions to boost orders this period."}
+                      {(insights.completionRate||0)>=80?"Great completion rate! Focus on increasing volume.":(insights.revenueGrowth||0)>0?"Revenue is growing — keep the momentum!":"Consider promotions to boost services this period."}
                     </p>
                   </div>
+
+                  {/* Water Consumption Section */}
+                  {waterConsumption && (
+                    <>
+                      <div className="col-span-full mt-2">
+                        <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2 mb-3">💧 Water Consumption Monitor</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Total Water Used</p>
+                            <p className="text-xl font-bold text-blue-800 dark:text-blue-200">{(waterConsumption.totalLiters||0).toLocaleString()} L</p>
+                          </div>
+                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Total Drums (200L)</p>
+                            <p className="text-xl font-bold text-blue-800 dark:text-blue-200">{waterConsumption.totalDrums||0} drums</p>
+                          </div>
+                          <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-700 rounded-lg p-4">
+                            <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-1">Avg Water/Day</p>
+                            <p className="text-xl font-bold text-cyan-800 dark:text-cyan-200">{(waterConsumption.avgWaterPerDay||0)} L</p>
+                          </div>
+                          <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-700 rounded-lg p-4">
+                            <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-1">Avg Drums/Day</p>
+                            <p className="text-xl font-bold text-cyan-800 dark:text-cyan-200">{waterConsumption.avgDrumsPerDay||0} drums</p>
+                          </div>
+                        </div>
+                        <div className="mt-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                          <p className="text-xs font-semibold text-slate-500 uppercase mb-2">By Service Type</p>
+                          <div className="space-y-1.5 text-sm">
+                            {[
+                              ["Regular Clothes", waterConsumption.byService?.regularClothes||0, "50L/load"],
+                              ["Assorted Clothes", waterConsumption.byService?.assortedClothes||0, "50L/load"],
+                              ["Towel & Blankets", waterConsumption.byService?.towelBlankets||0, "60L/load"],
+                              ["Comforter", waterConsumption.byService?.comforter||0, "70L/load"],
+                              ["Self-Service Wash", waterConsumption.byService?.selfServiceWash||0, "45L/session"],
+                              ["Self-Service Spin", waterConsumption.byService?.selfServiceSpin||0, "5L/session"],
+                            ].filter(([,v]) => (v as number)>0).map(([label, liters, rate]) => (
+                              <div key={label as string} className="flex justify-between items-center">
+                                <span className="text-slate-600 dark:text-slate-400">{label as string} <span className="text-xs text-slate-400">({rate as string})</span></span>
+                                <span className="font-medium text-blue-700 dark:text-blue-300">{(liters as number).toLocaleString()} L ({Math.ceil((liters as number)/200)} drums)</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -788,7 +837,7 @@ function ImprovedBarChart({
           <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
             <Package size={28} className="text-slate-400" />
           </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">No orders available</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">No services available</p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
             Data will appear once you have orders
           </p>
@@ -808,7 +857,7 @@ function ImprovedBarChart({
           <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
             <Package size={28} className="text-slate-400" />
           </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">No orders yet</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">No services yet</p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
             Create your first order to see trends
           </p>

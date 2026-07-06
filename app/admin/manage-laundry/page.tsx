@@ -181,7 +181,14 @@ export default function ManageLaundryPage() {
   const paginatedOrders = sortedOrders.slice(startIndex, endIndex);
 
   const getStatusBadgeColor = (status: string) => {
-    return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+    switch (status) {
+      case "pending": return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-700";
+      case "in-progress": return "bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700";
+      case "ready": return "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border border-green-300 dark:border-green-700";
+      case "completed": return "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-600";
+      case "cancelled": return "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-700";
+      default: return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
+    }
   };
 
   const getPaymentBadgeColor = (status: string) => {
@@ -364,7 +371,7 @@ export default function ManageLaundryPage() {
                             Actions
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                            Laundry ID
+                            Service ID
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                             Customer
@@ -529,7 +536,7 @@ export default function ManageLaundryPage() {
         />
       )}
 
-      {/* Create Order Modal */}
+      {/* Create Service Modal */}
       {isCreateModalOpen && (
         <CreateOrderModal
           customers={allCustomers || []}
@@ -729,8 +736,8 @@ function ViewOrderModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-                Laundry ID
-              </label> 
+                Service ID
+              </label>
               <p className="text-slate-900 dark:text-slate-100 font-medium">{order.orderId}</p>
             </div>
             <div>
@@ -922,7 +929,11 @@ function ViewOrderModal({
               )}
               {order.status !== "completed" && order.status !== "cancelled" && order.status !== "ready" && (
                 <button
-                  onClick={() => onUpdateStatus(order._id, "cancelled")}
+                  onClick={() => {
+                    if (window.confirm("⚠️ Are you sure you want to cancel this service? This action cannot be undone.")) {
+                      onUpdateStatus(order._id, "cancelled");
+                    }
+                  }}
                   className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   Cancel Laundry
@@ -952,7 +963,7 @@ function ViewOrderModal({
   );
 }
 
-// Create Order Modal Component
+// Create Service Modal Component
 function CreateOrderModal({
   customers,
   onClose,
@@ -1175,7 +1186,7 @@ function CreateOrderModal({
             </div>
           </form>
         ) : (
-          // Create Order Form
+          // Create Service Form
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -1328,7 +1339,7 @@ function CreateOrderModal({
                 disabled={isSubmitting}
                 className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Creating..." : "Create Laundry"}
+                {isSubmitting ? "Creating..." : "Create Service"}
               </button>
             </div>
           </form>
