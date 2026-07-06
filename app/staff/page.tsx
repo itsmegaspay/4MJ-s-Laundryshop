@@ -12,10 +12,10 @@ export default function StaffDashboard() {
   const user = useQuery(api.users.getCurrentUser);
   const router = useRouter();
 
-  // Get order statistics
+  // Get service statistics
   const orderStats = useQuery(api.laundryOrdersQueries.getOrderStatistics, {});
   
-  // Get all orders for recent activity
+  // Get all services for recent activity
   const allOrders = useQuery(api.laundryOrdersQueries.getAllOrders, {});
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function StaffDashboard() {
     return null;
   }
 
-  // Get recent orders (last 5)
+  // Get recent services (last 5)
   const recentOrders = allOrders?.slice(0, 5) || [];
 
   // Format currency
@@ -215,7 +215,7 @@ export default function StaffDashboard() {
 
                 {/* Recent Activity Sections */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Recent Orders */}
+                  {/* Recent Services */}
                   <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent Laundry</h2>

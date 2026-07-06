@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
               
               <div class="status-banner">
                 <h2>✅ READY FOR PICKUP</h2>
-                <p>Your order has been completed and is waiting for you</p>
+                <p>Your service has been completed and is waiting for you</p>
               </div>
 
               <div class="order-card">
@@ -264,7 +264,7 @@ export async function POST(request: NextRequest) {
               <div class="info-box">
                 <h4>💡 What to Bring:</h4>
                 <ul>
-                  <li>Your Order ID: <strong>${orderId}</strong></li>
+                  <li>Your Service ID: <strong>${orderId}</strong></li>
                   <li>Payment for ₱${pricing.totalPrice.toFixed(2)}</li>
                   <li>Valid ID (if required)</li>
                 </ul>
@@ -272,7 +272,7 @@ export async function POST(request: NextRequest) {
               
               <center>
                 <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/track?id=${orderId}" class="button" style="color: #ffffff !important; text-decoration: none; background-color: #10b981;">
-                  View Order Details
+                  View Service Details
                 </a>
               </center>
               

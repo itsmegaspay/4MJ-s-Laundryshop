@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
 // Send email function
 export const sendEmail = async (data: EmailPayload) => {
   const mailOptions = {
-    from: `"4MJ's Laundry" <${process.env.GMAIL_USER}>`,
+    from: `"NorthEnd Laundry" <${process.env.GMAIL_USER}>`,
     to: data.to,
     subject: data.subject,
     html: data.html,
@@ -61,11 +61,11 @@ export const sendWelcomeEmail = async (
       <body>
         <div class="container">
           <div class="header">
-            <h1>🧺 4MJ's Laundry</h1>
+            <h1>🧺 NorthEnd Laundry</h1>
           </div>
           <div class="content">
             <h2>Welcome, ${name}!</h2>
-            <p>Your account has been created as a <strong>${role}</strong> member of the 4MJ's Laundry team.</p>
+            <p>Your account has been created as a <strong>${role}</strong> member of the NorthEnd Laundry team.</p>
             
             <div class="credentials">
               <h3>Your Login Credentials</h3>
@@ -88,7 +88,7 @@ export const sendWelcomeEmail = async (
 
   return sendEmail({
     to: email,
-    subject: "Welcome to 4MJ's Laundry - Your Account Details",
+    subject: 'Welcome to NorthEnd Laundry - Your Account Details',
     html,
   });
 };
@@ -120,15 +120,15 @@ export const sendOrderStatusEmail = async (
       <body>
         <div class="container">
           <div class="header">
-            <h1>🧺 4MJ's Laundry</h1>
+            <h1>🧺 NorthEnd Laundry</h1>
           </div>
           <div class="content">
             <h2>Hello, {{customerName}}!</h2>
-            <p>Your order <strong>{{orderNumber}}</strong> has been updated.</p>
+            <p>Your service <strong>{{orderNumber}}</strong> has been updated.</p>
             
             <p>Current Status: <span class="status status-{{status}}">{{statusLabel}}</span></p>
             
-            <p>Thank you for choosing 4MJ's Laundry!</p>
+            <p>Thank you for choosing NorthEnd Laundry!</p>
             
             <p style="color: #666; font-size: 14px; margin-top: 30px;">
               If you have any questions, please contact us.

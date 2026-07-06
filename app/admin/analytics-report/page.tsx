@@ -70,7 +70,7 @@ export default function AnalyticsReportPage() {
     }
   }, [user, router]);
 
-  // Fetch all orders for custom analysis
+  // Fetch all services for custom analysis
   const allOrders = useQuery(api.laundryOrdersQueries.getAllOrders, {});
   const allCustomers = useQuery(api.customers.getAllCustomers);
 
@@ -109,7 +109,7 @@ export default function AnalyticsReportPage() {
     setShowDatePicker(false);
   };
 
-  // Filter orders by date range
+  // Filter services by date range
   const filteredOrders = allOrders.filter(
     (order) =>
       order.createdAt >= dateRange.start.getTime() &&
@@ -210,7 +210,7 @@ export default function AnalyticsReportPage() {
   // Export to CSV
   const exportToCSV = () => {
     const csvData = [
-      ["=== 4MJ'S LAUNDRY - ADVANCED ANALYTICS REPORT ==="],
+      ["=== NORTHEND LAUNDRY - ADVANCED ANALYTICS REPORT ==="],
       [""],
       ["Report Generated:", new Date().toLocaleString()],
       ["Date Range:", `${dateRange.start.toLocaleDateString()} to ${dateRange.end.toLocaleDateString()}`],
@@ -221,10 +221,10 @@ export default function AnalyticsReportPage() {
       [""],
       ["Metric", "Current Period", "Previous Period", "Change (%)", "Trend"],
       ["Total Revenue", currentRevenue.toFixed(2), previousRevenue.toFixed(2), revenueChange.toFixed(1) + "%", revenueChange >= 0 ? "↑" : "↓"],
-      ["Total Orders", currentOrders, previousOrders, ordersChange.toFixed(1) + "%", ordersChange >= 0 ? "↑" : "↓"],
+      ["Total Services", currentOrders, previousOrders, ordersChange.toFixed(1) + "%", ordersChange >= 0 ? "↑" : "↓"],
       ["Average Order Value", currentAvgOrderValue.toFixed(2), previousAvgOrderValue.toFixed(2), avgValueChange.toFixed(1) + "%", avgValueChange >= 0 ? "↑" : "↓"],
       ["Completion Rate", `${((currentCompletedOrders / currentOrders) * 100).toFixed(1)}%`, `${((previousCompletedOrders / previousOrders) * 100).toFixed(1)}%`, completionRateChange.toFixed(1) + "%", completionRateChange >= 0 ? "↑" : "↓"],
-      ["Completed Orders", currentCompletedOrders, previousCompletedOrders, "", ""],
+      ["Completed Services", currentCompletedOrders, previousCompletedOrders, "", ""],
       [""],
       [""],
       ["=== CUSTOMER INSIGHTS ==="],
@@ -253,7 +253,7 @@ export default function AnalyticsReportPage() {
       ["TOTAL REVENUE", currentRevenue.toFixed(2), "100%"],
       [""],
       ["Revenue by Day of Week"],
-      ["Day", "Revenue (₱)", "Orders", "Avg Order Value (₱)", "% of Total Revenue"],
+      ["Day", "Revenue (₱)", "Orders", "Avg Service Value (₱)", "% of Total Revenue"],
       ...dayOfWeekData.map((item) => [
         item.day,
         item.revenue.toFixed(2),
@@ -283,7 +283,7 @@ export default function AnalyticsReportPage() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `4MJ's-Analytics-${dateRange.start.toISOString().split('T')[0]}-to-${dateRange.end.toISOString().split('T')[0]}.csv`;
+    a.download = `NorthEnd-Analytics-${dateRange.start.toISOString().split('T')[0]}-to-${dateRange.end.toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -415,7 +415,7 @@ export default function AnalyticsReportPage() {
                   icon={DollarSign}
                 />
                 <ComparisonCard
-                  title="Total Orders"
+                  title="Total Services"
                   current={currentOrders}
                   previous={previousOrders}
                   change={ordersChange}
@@ -423,7 +423,7 @@ export default function AnalyticsReportPage() {
                   icon={Package}
                 />
                 <ComparisonCard
-                  title="Avg Order Value"
+                  title="Avg Service Value"
                   current={currentAvgOrderValue}
                   previous={previousAvgOrderValue}
                   change={avgValueChange}
@@ -621,7 +621,6 @@ function ComparisonCard({
   icon: any;
 }) {
   const formatValue = (value: number) => {
-    if (value === undefined || value === null || isNaN(value)) return "0";
     if (format === "currency") return `₱${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
     if (format === "percentage") return `${value.toFixed(1)}%`;
     return value.toString();

@@ -121,7 +121,7 @@ export default function TrackPage() {
       return [{
         status: "cancelled",
         label: "Laundry Cancelled",
-        description: order.cancellationReason || "Laundry order was cancelled",
+        description: order.cancellationReason || "Laundry service was cancelled",
         timestamp: order.cancelledAt || order.updatedAt,
         completed: true,
         icon: XCircle,
@@ -364,10 +364,10 @@ export default function TrackPage() {
           </CardContent>
         </Card>
 
-        {/* Laundry Details - Mobile optimized */}
+        {/* Service Details - Mobile optimized */}
         <Card>
           <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-2xl">Laundry Details</CardTitle>
+            <CardTitle className="text-lg sm:text-2xl">Service Details</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">

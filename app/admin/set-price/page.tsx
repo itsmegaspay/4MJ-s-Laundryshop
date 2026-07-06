@@ -166,8 +166,8 @@ export default function SetPricePage() {
           <div className="mt-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-4">
             <h4 className="font-semibold text-amber-900 dark:text-amber-200 mb-2">Important Notes</h4>
             <ul className="space-y-1 text-sm text-amber-800 dark:text-amber-300">
-              <li>• Prices are automatically applied to new orders</li>
-              <li>• Existing orders keep their original pricing</li>
+              <li>• Prices are automatically applied to new services</li>
+              <li>• Existing services keep their original pricing</li>
               <li>• Changes are logged in the audit trail</li>
               <li>• Only administrators can modify prices</li>
             </ul>

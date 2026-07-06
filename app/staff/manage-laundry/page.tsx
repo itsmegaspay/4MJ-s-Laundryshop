@@ -139,7 +139,7 @@ export default function ManageLaundryPage() {
     return null;
   }
 
-  // Filter orders based on search
+  // Filter services based on search
   const filteredOrders = allOrders?.filter((order) => {
     const matchesSearch = 
       order.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -719,7 +719,7 @@ function ViewOrderModal({
         <div className="sticky top-0 bg-white dark:bg-slate-800 px-6 py-4 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              Laundry Details
+              Service Details
             </h2>
             <button
               onClick={onClose}
@@ -824,7 +824,7 @@ function ViewOrderModal({
             </div>
           )}
 
-          {/* Payment Status - Only show for completed orders */}
+          {/* Payment Status - Only show for completed services */}
           {order.status === "completed" && (
             <div>
               <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
@@ -935,7 +935,7 @@ function ViewOrderModal({
                   }}
                   className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition-colors"
                 >
-                  Cancel Laundry
+                  Cancel Service
                 </button>
               )}
             </div>

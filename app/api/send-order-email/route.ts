@@ -232,14 +232,14 @@ export async function POST(request: NextRequest) {
                 <!--[if mso]>
                 <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/track?id=${orderId}" style="height:44px;v-text-anchor:middle;width:200px;" arcsize="14%" fillcolor="#3b82f6">
                   <w:anchorlock/>
-                  <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:600;">Track Your Laundry</center>
+                  <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:16px;font-weight:600;">Track Your Service</center>
                 </v:roundrect>
                 <![endif]-->
                 <!--[if !mso]><!-->
                 <table cellpadding="0" cellspacing="0" border="0" style="margin: 20px 0;">
                   <tr>
                     <td bgcolor="#3b82f6" style="border-radius: 6px; padding: 0;">
-                      <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/track?id=${orderId}" target="_blank" style="display: inline-block; padding: 12px 30px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 6px; font-family: Arial, sans-serif; font-size: 16px; font-weight: 600; line-height: 1.5;">Track Your Laundry</a>
+                      <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/track?id=${orderId}" target="_blank" style="display: inline-block; padding: 12px 30px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 6px; font-family: Arial, sans-serif; font-size: 16px; font-weight: 600; line-height: 1.5;">Track Your Service</a>
                     </td>
                   </tr>
                 </table>
