@@ -64,8 +64,8 @@ export default function AdminDashboard() {
   });
 
   const alerts = useQuery(api.analytics.getActiveAlerts);
-  const tankStatus = useQuery(api.waterTank.getTankStatus);
-  const refillTanks = useMutation(api.waterTank.refillTanks);
+  const drumStatus = useQuery(api.waterTank.getDrumStatus);
+  const refillDrums = useMutation(api.waterTank.refillDrums);
   const [isRefilling, setIsRefilling] = useState(false);
 
   if (user === undefined || !dashboardStats) {
@@ -387,85 +387,128 @@ export default function AdminDashboard() {
 
 
             {/* ── DA INSIGHTS / FORECASTING ─────────────────────────────── */}
-            {insights && (
+            {insights && (() => {
+              const compRate = insights.completionRate || 0;
+              const compSeverity = compRate >= 80 ? "green" : compRate >= 50 ? "orange" : "red";
+              const revGrowth = insights.revenueGrowth || 0;
+              const revSeverity = revGrowth >= 10 ? "green" : revGrowth >= 0 ? "orange" : "red";
+              const ordGrowth = ordersGrowth || 0;
+              const ordSeverity = ordGrowth >= 10 ? "green" : ordGrowth >= 0 ? "orange" : "red";
+
+              const cc: Record<string, { bg: string; border: string; text: string; sub: string; label: string }> = {
+                green: {
+                  bg: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20",
+                  border: "border-green-300 dark:border-green-700",
+                  text: "text-green-700 dark:text-green-300",
+                  sub: "text-green-600 dark:text-green-400",
+                  label: "text-green-700 dark:text-green-400",
+                },
+                orange: {
+                  bg: "bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20",
+                  border: "border-orange-300 dark:border-orange-700",
+                  text: "text-orange-700 dark:text-orange-300",
+                  sub: "text-orange-600 dark:text-orange-400",
+                  label: "text-orange-700 dark:text-orange-400",
+                },
+                red: {
+                  bg: "bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20",
+                  border: "border-red-300 dark:border-red-700",
+                  text: "text-red-700 dark:text-red-300",
+                  sub: "text-red-600 dark:text-red-400",
+                  label: "text-red-700 dark:text-red-400",
+                },
+              };
+              const icon = { green: "✅", orange: "⚠️", red: "🔴" };
+
+              return (
               <div className="mb-8">
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
                   📊 DA Insights &amp; Forecasting
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Green: Good metrics */}
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 rounded-lg border border-green-300 dark:border-green-700 p-5">
-                    <p className="text-xs font-medium text-green-700 dark:text-green-400 uppercase tracking-wide mb-1">✅ Completion Rate</p>
-                    <p className={`text-2xl font-bold ${(insights.completionRate||0)>=80?"text-green-700 dark:text-green-300":(insights.completionRate||0)>=50?"text-orange-600 dark:text-orange-300":"text-red-600 dark:text-red-300"}`}>{insights.completionRate||0}%</p>
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">Of all services completed</p>
+                  {/* Completion Rate */}
+                  <div className={`${cc[compSeverity].bg} rounded-lg border ${cc[compSeverity].border} p-5`}>
+                    <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${cc[compSeverity].label}`}>{icon[compSeverity]} Completion Rate</p>
+                    <p className={`text-2xl font-bold ${cc[compSeverity].text}`}>{compRate}%</p>
+                    <p className={`text-xs mt-1 ${cc[compSeverity].sub}`}>
+                      {compSeverity === "green" ? "Of all services completed — excellent!" : compSeverity === "orange" ? "Slightly below target for completed services" : "Needs attention — completion rate is low"}
+                    </p>
                   </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 rounded-lg border border-green-300 dark:border-green-700 p-5">
-                    <p className="text-xs font-medium text-green-700 dark:text-green-400 uppercase tracking-wide mb-1">✅ Projected Revenue</p>
-                    <p className={`text-2xl font-bold ${(insights.revenueGrowth||0)>=0?"text-green-700 dark:text-green-300":"text-red-600 dark:text-red-300"}`}>₱{(insights.forecastRevenue||0).toLocaleString()}</p>
-                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">Trend: {insights.revenueGrowth>=0?"+":""}{insights.revenueGrowth}%</p>
+                  {/* Projected Revenue */}
+                  <div className={`${cc[revSeverity].bg} rounded-lg border ${cc[revSeverity].border} p-5`}>
+                    <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${cc[revSeverity].label}`}>{icon[revSeverity]} Projected Revenue</p>
+                    <p className={`text-2xl font-bold ${cc[revSeverity].text}`}>₱{(insights.forecastRevenue||0).toLocaleString()}</p>
+                    <p className={`text-xs mt-1 ${cc[revSeverity].sub}`}>
+                      Trend: {revGrowth>=0?"+":""}{revGrowth}% {revSeverity === "orange" ? "(slightly growing)" : revSeverity === "red" ? "(declining)" : "(strong growth)"}
+                    </p>
                   </div>
-                  {/* Orange: Watch metrics */}
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border border-orange-300 dark:border-orange-700 p-5">
-                    <p className="text-xs font-medium text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-1">⚠️ Busiest Day</p>
-                    <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{insights.peakDay||"N/A"}</p>
-                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">{insights.peakDayOrders||0} services on avg — prepare staff</p>
+                  {/* Busiest Day - operational heads-up */}
+                  <div className={`${cc.orange.bg} rounded-lg border ${cc.orange.border} p-5`}>
+                    <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${cc.orange.label}`}>⚠️ Busiest Day</p>
+                    <p className={`text-2xl font-bold ${cc.orange.text}`}>{insights.peakDay||"N/A"}</p>
+                    <p className={`text-xs mt-1 ${cc.orange.sub}`}>{insights.peakDayOrders||0} services on avg — prepare staff</p>
                   </div>
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/20 rounded-lg border border-orange-300 dark:border-orange-700 p-5">
-                    <p className="text-xs font-medium text-orange-700 dark:text-orange-400 uppercase tracking-wide mb-1">⚠️ Projected Services</p>
-                    <p className="text-2xl font-bold text-orange-700 dark:text-orange-300">{insights.forecastOrders||0}</p>
-                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Avg ₱{(insights.avgOrderValue||0).toLocaleString()} per service</p>
+                  {/* Projected Services */}
+                  <div className={`${cc[ordSeverity].bg} rounded-lg border ${cc[ordSeverity].border} p-5`}>
+                    <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${cc[ordSeverity].label}`}>{icon[ordSeverity]} Projected Services</p>
+                    <p className={`text-2xl font-bold ${cc[ordSeverity].text}`}>{insights.forecastOrders||0}</p>
+                    <p className={`text-xs mt-1 ${cc[ordSeverity].sub}`}>
+                      Avg ₱{(insights.avgOrderValue||0).toLocaleString()} per service {ordSeverity === "orange" ? "(slightly growing)" : ordSeverity === "red" ? "(declining)" : "(strong growth)"}
+                    </p>
                   </div>
-                  {/* Red: Alert metrics */}
-                  <div className={`bg-gradient-to-br rounded-lg border p-5 ${(insights.revenueGrowth||0)<0?"from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 border-red-300 dark:border-red-700":"from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 border-green-300 dark:border-green-700"}`}>
-                    <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${(insights.revenueGrowth||0)<0?"text-red-700 dark:text-red-400":"text-green-700 dark:text-green-400"}`}>{(insights.revenueGrowth||0)<0?"🔴 Revenue Declining":"🟢 Revenue Growing"}</p>
-                    <p className={`text-2xl font-bold ${(insights.revenueGrowth||0)<0?"text-red-700 dark:text-red-300":"text-green-700 dark:text-green-300"}`}>{insights.revenueGrowth>=0?"+":""}{insights.revenueGrowth}%</p>
-                    <p className={`text-xs mt-1 ${(insights.revenueGrowth||0)<0?"text-red-600 dark:text-red-400":"text-green-600 dark:text-green-400"}`}>{(insights.revenueGrowth||0)<0?"Action needed to recover revenue":"Keep up the great work!"}</p>
+                  {/* Revenue Growing/Declining */}
+                  <div className={`${cc[revSeverity].bg} rounded-lg border ${cc[revSeverity].border} p-5`}>
+                    <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${cc[revSeverity].label}`}>{revSeverity === "red" ? "🔴 Revenue Declining" : revSeverity === "orange" ? "⚠️ Revenue Slightly Growing" : "✅ Revenue Growing"}</p>
+                    <p className={`text-2xl font-bold ${cc[revSeverity].text}`}>{revGrowth>=0?"+":""}{revGrowth}%</p>
+                    <p className={`text-xs mt-1 ${cc[revSeverity].sub}`}>
+                      {revSeverity === "red" ? "Action needed to recover revenue" : revSeverity === "orange" ? "Growing slightly — keep pushing for more" : "Keep up the great work!"}
+                    </p>
                   </div>
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/30 rounded-lg border border-slate-200 dark:border-slate-600 p-5">
                     <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide mb-1">💡 Business Tip</p>
                     <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                      {(insights.completionRate||0)>=80?"Great completion rate! Focus on increasing volume.":(insights.revenueGrowth||0)>0?"Revenue is growing — keep the momentum!":"Consider promotions to boost services this period."}
+                      {compSeverity === "green" ? "Great completion rate! Focus on increasing volume." : revSeverity !== "red" ? "Revenue is growing — keep the momentum!" : "Consider promotions to boost services this period."}
                     </p>
                   </div>
 
-                  {/* Water Tank Monitor - Realistic Tracking */}
-                  {tankStatus && (
+                  {/* Water Drum Monitor - Realistic Tracking */}
+                  {drumStatus && (
                     <div className="col-span-full mt-2">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2">💧 Water Tank Monitor</h3>
+                        <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2">💧 Water Drum Monitor</h3>
                         <button
                           onClick={async () => {
-                            if (window.confirm(`Confirm that all ${tankStatus.totalTanks} tanks have been refilled to full (${tankStatus.totalCapacityLiters}L)?`)) {
+                            if (window.confirm(`Confirm that all ${drumStatus.totalDrums} drums have been refilled to full (${drumStatus.totalCapacityLiters}L)?`)) {
                               setIsRefilling(true);
-                              try { await refillTanks({}); } finally { setIsRefilling(false); }
+                              try { await refillDrums({}); } finally { setIsRefilling(false); }
                             }
                           }}
                           disabled={isRefilling}
                           className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50"
                         >
-                          {isRefilling ? "Refilling..." : "🔄 Mark Tanks Refilled"}
+                          {isRefilling ? "Refilling..." : "🔄 Mark Drums Refilled"}
                         </button>
                       </div>
 
                       {/* Refill Alert Banner */}
-                      {tankStatus.needsRefillUrgent && (
+                      {drumStatus.needsRefillUrgent && (
                         <div className="mb-3 p-4 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg flex items-start gap-3">
                           <span className="text-2xl">🔴</span>
                           <div>
-                            <p className="font-semibold text-red-800 dark:text-red-200">Urgent: Refill Water Tanks Now</p>
+                            <p className="font-semibold text-red-800 dark:text-red-200">Urgent: Refill Water Drums Now</p>
                             <p className="text-sm text-red-600 dark:text-red-400 mt-0.5">
-                              Only {tankStatus.tanksRemaining} tank(s) ({tankStatus.remainingLiters}L) remaining out of {tankStatus.totalTanks} tanks. Refill {(tankStatus.totalTanks - tankStatus.tanksRemaining).toFixed(1)} tank(s) / {tankStatus.usedLiters}L needed.
+                              Only {drumStatus.drumsRemaining} drum(s) ({drumStatus.remainingLiters}L) remaining out of {drumStatus.totalDrums} drums. Refill {(drumStatus.totalDrums - drumStatus.drumsRemaining).toFixed(1)} drum(s) / {drumStatus.usedLiters}L needed.
                             </p>
                           </div>
                         </div>
                       )}
-                      {tankStatus.needsRefillSoon && !tankStatus.needsRefillUrgent && (
+                      {drumStatus.needsRefillSoon && !drumStatus.needsRefillUrgent && (
                         <div className="mb-3 p-4 bg-orange-50 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 rounded-lg flex items-start gap-3">
                           <span className="text-2xl">🟠</span>
                           <div>
                             <p className="font-semibold text-orange-800 dark:text-orange-200">Water Running Low — Plan a Refill Soon</p>
                             <p className="text-sm text-orange-600 dark:text-orange-400 mt-0.5">
-                              {tankStatus.tanksRemaining} tank(s) ({tankStatus.remainingLiters}L) remaining out of {tankStatus.totalTanks} tanks.
+                              {drumStatus.drumsRemaining} drum(s) ({drumStatus.remainingLiters}L) remaining out of {drumStatus.totalDrums} drums.
                             </p>
                           </div>
                         </div>
@@ -473,39 +516,39 @@ export default function AdminDashboard() {
 
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-                          <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Tanks Used</p>
-                          <p className="text-xl font-bold text-blue-800 dark:text-blue-200">{tankStatus.tanksUsed} / {tankStatus.totalTanks} tanks</p>
-                          <p className="text-xs text-blue-500 mt-0.5">{tankStatus.usedLiters}L used</p>
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Drums Used</p>
+                          <p className="text-xl font-bold text-blue-800 dark:text-blue-200">{drumStatus.drumsUsed} / {drumStatus.totalDrums} drums</p>
+                          <p className="text-xs text-blue-500 mt-0.5">{drumStatus.usedLiters}L used</p>
                         </div>
-                        <div className={`rounded-lg p-4 border ${tankStatus.needsRefillUrgent ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700" : tankStatus.needsRefillSoon ? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700"}`}>
-                          <p className={`text-xs mb-1 ${tankStatus.needsRefillUrgent ? "text-red-600 dark:text-red-400" : tankStatus.needsRefillSoon ? "text-orange-600 dark:text-orange-400" : "text-green-600 dark:text-green-400"}`}>Tanks Remaining</p>
-                          <p className={`text-xl font-bold ${tankStatus.needsRefillUrgent ? "text-red-800 dark:text-red-200" : tankStatus.needsRefillSoon ? "text-orange-800 dark:text-orange-200" : "text-green-800 dark:text-green-200"}`}>{tankStatus.tanksRemaining} tanks</p>
-                          <p className="text-xs mt-0.5 opacity-70">{tankStatus.remainingLiters}L left ({tankStatus.percentRemaining}%)</p>
+                        <div className={`rounded-lg p-4 border ${drumStatus.needsRefillUrgent ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700" : drumStatus.needsRefillSoon ? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700"}`}>
+                          <p className={`text-xs mb-1 ${drumStatus.needsRefillUrgent ? "text-red-600 dark:text-red-400" : drumStatus.needsRefillSoon ? "text-orange-600 dark:text-orange-400" : "text-green-600 dark:text-green-400"}`}>Drums Remaining</p>
+                          <p className={`text-xl font-bold ${drumStatus.needsRefillUrgent ? "text-red-800 dark:text-red-200" : drumStatus.needsRefillSoon ? "text-orange-800 dark:text-orange-200" : "text-green-800 dark:text-green-200"}`}>{drumStatus.drumsRemaining} drums</p>
+                          <p className="text-xs mt-0.5 opacity-70">{drumStatus.remainingLiters}L left ({drumStatus.percentRemaining}%)</p>
                         </div>
                         <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-700 rounded-lg p-4">
-                          <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-1">Tank Capacity</p>
-                          <p className="text-xl font-bold text-cyan-800 dark:text-cyan-200">{tankStatus.totalCapacityLiters}L</p>
-                          <p className="text-xs text-cyan-500 mt-0.5">{tankStatus.totalTanks} × {tankStatus.tankCapacityLiters}L tanks</p>
+                          <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-1">Drum Capacity</p>
+                          <p className="text-xl font-bold text-cyan-800 dark:text-cyan-200">{drumStatus.totalCapacityLiters}L</p>
+                          <p className="text-xs text-cyan-500 mt-0.5">{drumStatus.totalDrums} × {drumStatus.drumCapacityLiters}L drums</p>
                         </div>
                         <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-700 rounded-lg p-4">
                           <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-1">Last Refilled</p>
                           <p className="text-sm font-bold text-cyan-800 dark:text-cyan-200">
-                            {tankStatus.lastRefillAt ? new Date(tankStatus.lastRefillAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "Never recorded"}
+                            {drumStatus.lastRefillAt ? new Date(drumStatus.lastRefillAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "Never recorded"}
                           </p>
                           <p className="text-xs text-cyan-500 mt-0.5">Since this refill</p>
                         </div>
                       </div>
 
-                      {/* Visual tank level bar */}
+                      {/* Visual drum level bar */}
                       <div className="mt-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <p className="text-xs font-semibold text-slate-500 uppercase">Water Level</p>
-                          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{tankStatus.percentRemaining}% remaining</p>
+                          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{drumStatus.percentRemaining}% remaining</p>
                         </div>
                         <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4 overflow-hidden">
                           <div
-                            className={`h-4 rounded-full transition-all duration-500 ${tankStatus.percentRemaining <= 10 ? "bg-red-500" : tankStatus.percentRemaining <= 30 ? "bg-orange-500" : "bg-green-500"}`}
-                            style={{ width: `${tankStatus.percentRemaining}%` }}
+                            className={`h-4 rounded-full transition-all duration-500 ${drumStatus.percentRemaining <= 10 ? "bg-red-500" : drumStatus.percentRemaining <= 30 ? "bg-orange-500" : "bg-green-500"}`}
+                            style={{ width: `${drumStatus.percentRemaining}%` }}
                           />
                         </div>
                       </div>
@@ -515,19 +558,19 @@ export default function AdminDashboard() {
                         <p className="text-xs font-semibold text-slate-500 uppercase mb-2">Usage By Service Type (since last refill)</p>
                         <div className="space-y-1.5 text-sm">
                           {[
-                            ["Regular Clothes", tankStatus.usedByService?.regularClothes || 0, "50L/load"],
-                            ["Assorted Clothes", tankStatus.usedByService?.assortedClothes || 0, "50L/load"],
-                            ["Towel & Blankets", tankStatus.usedByService?.towelBlankets || 0, "60L/load"],
-                            ["Comforter", tankStatus.usedByService?.comforter || 0, "70L/load"],
-                            ["Self-Service Wash", tankStatus.usedByService?.selfServiceWash || 0, "45L/session"],
-                            ["Self-Service Spin", tankStatus.usedByService?.selfServiceSpin || 0, "5L/session"],
+                            ["Regular Clothes", drumStatus.usedByService?.regularClothes || 0, "50L/load"],
+                            ["Assorted Clothes", drumStatus.usedByService?.assortedClothes || 0, "50L/load"],
+                            ["Towel & Blankets", drumStatus.usedByService?.towelBlankets || 0, "60L/load"],
+                            ["Comforter", drumStatus.usedByService?.comforter || 0, "70L/load"],
+                            ["Self-Service Wash", drumStatus.usedByService?.selfServiceWash || 0, "45L/session"],
+                            ["Self-Service Spin", drumStatus.usedByService?.selfServiceSpin || 0, "5L/session"],
                           ].filter(([, v]) => (v as number) > 0).map(([label, liters, rate]) => (
                             <div key={label as string} className="flex justify-between items-center">
                               <span className="text-slate-600 dark:text-slate-400">{label as string} <span className="text-xs text-slate-400">({rate as string})</span></span>
                               <span className="font-medium text-blue-700 dark:text-blue-300">{(liters as number).toLocaleString()} L</span>
                             </div>
                           ))}
-                          {tankStatus.usedLiters === 0 && (
+                          {drumStatus.usedLiters === 0 && (
                             <p className="text-slate-400 text-sm">No water usage recorded since last refill.</p>
                           )}
                         </div>
@@ -536,7 +579,8 @@ export default function AdminDashboard() {
                   )}
                 </div>
               </div>
-            )}
+            );
+            })()}
 
 
             {/* Charts Section */}

@@ -19,6 +19,7 @@ import type * as laundryOrders from "../laundryOrders.js";
 import type * as laundryOrdersQueries from "../laundryOrdersQueries.js";
 import type * as pricingConfig from "../pricingConfig.js";
 import type * as users from "../users.js";
+import type * as waterTank from "../waterTank.js";
 
 import type {
   ApiFromModules,
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   laundryOrdersQueries: typeof laundryOrdersQueries;
   pricingConfig: typeof pricingConfig;
   users: typeof users;
+  waterTank: typeof waterTank;
 }>;
 
 /**

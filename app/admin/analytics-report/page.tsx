@@ -44,6 +44,15 @@ type DateRange = {
   end: Date;
 };
 
+// Convert short day abbreviations (Sun, Mon, ...) to full day names for readable insight text
+const DAY_NAME_MAP: Record<string, string> = {
+  Sun: "Sunday", Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday",
+  Thu: "Thursday", Fri: "Friday", Sat: "Saturday",
+};
+function fullDayName(shortDay: string): string {
+  return DAY_NAME_MAP[shortDay] || shortDay;
+}
+
 export default function AnalyticsReportPage() {
   const user = useQuery(api.users.getCurrentUser);
   const router = useRouter();
@@ -140,9 +149,9 @@ export default function AnalyticsReportPage() {
   const revenueChange = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
   const ordersChange = previousOrders > 0 ? ((currentOrders - previousOrders) / previousOrders) * 100 : 0;
   const avgValueChange = previousAvgOrderValue > 0 ? ((currentAvgOrderValue - previousAvgOrderValue) / previousAvgOrderValue) * 100 : 0;
-  const completionRateChange = previousOrders > 0 
-    ? ((currentCompletedOrders / currentOrders * 100) - (previousCompletedOrders / previousOrders * 100))
-    : 0;
+  const currentCompletionPct = currentOrders > 0 ? (currentCompletedOrders / currentOrders) * 100 : 0;
+  const previousCompletionPct = previousOrders > 0 ? (previousCompletedOrders / previousOrders) * 100 : 0;
+  const completionRateChange = previousOrders > 0 ? (currentCompletionPct - previousCompletionPct) : 0;
 
   // CUSTOMER SEGMENTATION
   const customerSpending = new Map<string, number>();
@@ -157,12 +166,25 @@ export default function AnalyticsReportPage() {
   const lowValueCustomers = Array.from(customerSpending.values()).filter((v) => v < 500).length;
 
   // NEW VS RETURNING CUSTOMERS
+  // A customer is counted only if they placed at least one service in this period.
+  // Among those, "new" = their account was created within this period (first-timer),
+  // "returning" = their account existed before this period started (came back again).
   const periodStart = dateRange.start.getTime();
-  const newCustomersInPeriod = allCustomers.filter(
-    (c) => c.createdAt >= periodStart && c.createdAt <= dateRange.end.getTime()
-  ).length;
-  const uniqueCustomersInPeriod = new Set(filteredOrders.map((o) => o.customerId)).size;
-  const returningCustomers = uniqueCustomersInPeriod - newCustomersInPeriod;
+  const customerIdsInPeriod = Array.from(new Set(filteredOrders.map((o) => o.customerId)));
+  const customersMap = new Map(allCustomers.map((c) => [c._id, c]));
+
+  let newCustomersInPeriod = 0;
+  let returningCustomers = 0;
+  customerIdsInPeriod.forEach((custId) => {
+    const cust = customersMap.get(custId);
+    if (!cust) return;
+    if (cust.createdAt >= periodStart && cust.createdAt <= dateRange.end.getTime()) {
+      newCustomersInPeriod++;
+    } else {
+      returningCustomers++;
+    }
+  });
+  const uniqueCustomersInPeriod = customerIdsInPeriod.length;
 
   // DAY OF WEEK ANALYSIS
   const dayOfWeekData = [
@@ -223,7 +245,7 @@ export default function AnalyticsReportPage() {
       ["Total Revenue", currentRevenue.toFixed(2), previousRevenue.toFixed(2), revenueChange.toFixed(1) + "%", revenueChange >= 0 ? "↑" : "↓"],
       ["Total Services", currentOrders, previousOrders, ordersChange.toFixed(1) + "%", ordersChange >= 0 ? "↑" : "↓"],
       ["Average Order Value", currentAvgOrderValue.toFixed(2), previousAvgOrderValue.toFixed(2), avgValueChange.toFixed(1) + "%", avgValueChange >= 0 ? "↑" : "↓"],
-      ["Completion Rate", `${((currentCompletedOrders / currentOrders) * 100).toFixed(1)}%`, `${((previousCompletedOrders / previousOrders) * 100).toFixed(1)}%`, completionRateChange.toFixed(1) + "%", completionRateChange >= 0 ? "↑" : "↓"],
+      ["Completion Rate", `${currentCompletionPct.toFixed(1)}%`, `${previousCompletionPct.toFixed(1)}%`, completionRateChange.toFixed(1) + "%", completionRateChange >= 0 ? "↑" : "↓"],
       ["Completed Services", currentCompletedOrders, previousCompletedOrders, "", ""],
       [""],
       [""],
@@ -240,7 +262,7 @@ export default function AnalyticsReportPage() {
       ["Type", "Count", "Percentage of Total"],
       ["New Customers", newCustomersInPeriod, `${((newCustomersInPeriod / (uniqueCustomersInPeriod || 1)) * 100).toFixed(1)}%`],
       ["Returning Customers", returningCustomers, `${((returningCustomers / (uniqueCustomersInPeriod || 1)) * 100).toFixed(1)}%`],
-      ["TOTAL UNIQUE CUSTOMERS", uniqueCustomersInPeriod, "100%"],
+      ["TOTAL CUSTOMERS", uniqueCustomersInPeriod, "100%"],
       [""],
       [""],
       ["=== REVENUE ANALYSIS ==="],
@@ -267,9 +289,9 @@ export default function AnalyticsReportPage() {
       ["=== KEY PERFORMANCE INDICATORS ==="],
       [""],
       ["Metric", "Value"],
-      ["Best Revenue Day", dayOfWeekData.reduce((max, day) => day.revenue > max.revenue ? day : max).day],
+      ["Best Revenue Day", fullDayName(dayOfWeekData.reduce((max, day) => day.revenue > max.revenue ? day : max).day)],
       ["Peak Revenue Amount", `₱${dayOfWeekData.reduce((max, day) => day.revenue > max.revenue ? day : max).revenue.toFixed(2)}`],
-      ["Busiest Day (Orders)", dayOfWeekData.reduce((max, day) => day.orders > max.orders ? day : max).day],
+      ["Busiest Day (Orders)", fullDayName(dayOfWeekData.reduce((max, day) => day.orders > max.orders ? day : max).day)],
       ["Peak Order Count", dayOfWeekData.reduce((max, day) => day.orders > max.orders ? day : max).orders],
       ["Customer Retention Rate", `${((returningCustomers / (uniqueCustomersInPeriod || 1)) * 100).toFixed(1)}%`],
       ["New Customer Rate", `${((newCustomersInPeriod / (uniqueCustomersInPeriod || 1)) * 100).toFixed(1)}%`],
@@ -432,8 +454,8 @@ export default function AnalyticsReportPage() {
                 />
                 <ComparisonCard
                   title="Completion Rate"
-                  current={(currentCompletedOrders / currentOrders) * 100}
-                  previous={(previousCompletedOrders / previousOrders) * 100}
+                  current={currentCompletionPct}
+                  previous={previousCompletionPct}
                   change={completionRateChange}
                   format="percentage"
                   icon={Clock}
@@ -507,7 +529,7 @@ export default function AnalyticsReportPage() {
                     <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                          Total Unique Customers
+                          Total Customers
                         </span>
                         <span className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                           {uniqueCustomersInPeriod}
@@ -560,40 +582,48 @@ export default function AnalyticsReportPage() {
                 <InsightCard
                   title="Revenue Trend"
                   description={
-                    revenueChange > 0
+                    revenueChange >= 10
                       ? `Revenue increased by ${revenueChange.toFixed(1)}% compared to the previous period. Excellent growth!`
-                      : revenueChange < 0
-                      ? `Revenue decreased by ${Math.abs(revenueChange).toFixed(1)}%. Consider promotional campaigns.`
-                      : "Revenue is stable with no significant change."
+                      : revenueChange >= 0
+                      ? `Revenue slightly increased by ${revenueChange.toFixed(1)}% compared to the previous period.`
+                      : `Revenue decreased by ${Math.abs(revenueChange).toFixed(1)}%. Consider promotional campaigns.`
                   }
-                  positive={revenueChange >= 0}
+                  severity={revenueChange >= 10 ? "green" : revenueChange >= 0 ? "orange" : "red"}
                 />
                 <InsightCard
-                  title="Order Volume"
+                  title="Service Volume"
                   description={
-                    ordersChange > 0
-                      ? `Orders increased by ${ordersChange.toFixed(1)}%. Customer demand is growing!`
-                      : ordersChange < 0
-                      ? `Orders decreased by ${Math.abs(ordersChange).toFixed(1)}%. Focus on customer acquisition.`
-                      : "Order volume remains stable."
+                    ordersChange >= 10
+                      ? `Services increased by ${ordersChange.toFixed(1)}%. Customer demand is growing!`
+                      : ordersChange >= 0
+                      ? `Services slightly increased by ${ordersChange.toFixed(1)}%.`
+                      : `Services decreased by ${Math.abs(ordersChange).toFixed(1)}%. Focus on customer acquisition.`
                   }
-                  positive={ordersChange >= 0}
+                  severity={ordersChange >= 10 ? "green" : ordersChange >= 0 ? "orange" : "red"}
                 />
                 <InsightCard
                   title="Customer Base"
                   description={
-                    newCustomersInPeriod > returningCustomers
+                    newCustomersInPeriod === 0 && returningCustomers === 0
+                      ? "No customer activity recorded in this period."
+                      : newCustomersInPeriod > returningCustomers
                       ? `Strong customer acquisition with ${newCustomersInPeriod} new customers!`
                       : returningCustomers > 0
                       ? `Good retention! ${returningCustomers} returning customers show loyalty.`
                       : "Focus on building a loyal customer base."
                   }
-                  positive={returningCustomers > 0 || newCustomersInPeriod > 0}
+                  severity={
+                    newCustomersInPeriod === 0 && returningCustomers === 0
+                      ? "red"
+                      : returningCustomers > 0 && newCustomersInPeriod > 0
+                      ? "green"
+                      : "orange"
+                  }
                 />
                 <InsightCard
                   title="Best Revenue Day"
-                  description={`${dayOfWeekData.reduce((max, day) => day.revenue > max.revenue ? day : max).day} generates the most revenue with ₱${dayOfWeekData.reduce((max, day) => day.revenue > max.revenue ? day : max).revenue.toLocaleString()}.`}
-                  positive={true}
+                  description={`${fullDayName(dayOfWeekData.reduce((max, day) => day.revenue > max.revenue ? day : max).day)} generates the most revenue with ₱${dayOfWeekData.reduce((max, day) => day.revenue > max.revenue ? day : max).revenue.toLocaleString()}.`}
+                  severity="green"
                 />
               </div>
             </div>
@@ -621,6 +651,7 @@ function ComparisonCard({
   icon: any;
 }) {
   const formatValue = (value: number) => {
+    if (value === undefined || value === null || isNaN(value)) return format === "percentage" ? "0.0%" : format === "currency" ? "₱0" : "0";
     if (format === "currency") return `₱${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
     if (format === "percentage") return `${value.toFixed(1)}%`;
     return value.toString();
@@ -794,31 +825,44 @@ function DayOfWeekChart({ data }: { data: { day: string; revenue: number; orders
   );
 }
 
-// Insight Card Component
+// Insight Card Component - green/orange/red severity coloring
 function InsightCard({
   title,
   description,
-  positive,
+  severity,
 }: {
   title: string;
   description: string;
-  positive: boolean;
+  severity: "green" | "orange" | "red";
 }) {
+  const styles = {
+    green: {
+      cardBg: "bg-green-50/50 dark:bg-green-950/10 border-green-200 dark:border-green-900",
+      iconBg: "bg-green-100 dark:bg-green-950/30",
+      iconColor: "text-green-600 dark:text-green-400",
+      Icon: TrendingUp,
+    },
+    orange: {
+      cardBg: "bg-orange-50/50 dark:bg-orange-950/10 border-orange-200 dark:border-orange-900",
+      iconBg: "bg-orange-100 dark:bg-orange-950/30",
+      iconColor: "text-orange-600 dark:text-orange-400",
+      Icon: TrendingUp,
+    },
+    red: {
+      cardBg: "bg-red-50/50 dark:bg-red-950/10 border-red-200 dark:border-red-900",
+      iconBg: "bg-red-100 dark:bg-red-950/30",
+      iconColor: "text-red-600 dark:text-red-400",
+      Icon: TrendingDown,
+    },
+  }[severity];
+
+  const { Icon } = styles;
+
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+    <div className={`rounded-lg p-4 border ${styles.cardBg}`}>
       <div className="flex items-start gap-3">
-        <div
-          className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-            positive
-              ? "bg-green-100 dark:bg-green-950/30"
-              : "bg-amber-100 dark:bg-amber-950/30"
-          }`}
-        >
-          {positive ? (
-            <TrendingUp className="text-green-600 dark:text-green-400" size={20} />
-          ) : (
-            <TrendingDown className="text-amber-600 dark:text-amber-400" size={20} />
-          )}
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${styles.iconBg}`}>
+          <Icon className={styles.iconColor} size={20} />
         </div>
         <div>
           <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">{title}</h4>

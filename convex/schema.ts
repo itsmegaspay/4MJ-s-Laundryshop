@@ -221,9 +221,9 @@ export default defineSchema({
     .index("by_created_at", ["createdAt"])
     .index("by_resolved", ["isResolved"]), // Index for filtering resolved alerts
 
-  waterTankStatus: defineTable({
-    totalTanks: v.number(), // e.g. 3
-    tankCapacityLiters: v.number(), // e.g. 200 per tank
+  waterDrumStatus: defineTable({
+    totalDrums: v.number(), // e.g. 12
+    drumCapacityLiters: v.number(), // e.g. 200 per drum
     lastRefillAt: v.number(), // timestamp of last full refill
     lastRefillBy: v.optional(v.id("users")),
     updatedAt: v.number(),
