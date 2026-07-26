@@ -32,7 +32,7 @@ export default function Home() {
         <div className="px-4 py-3 sm:px-6 sm:py-4 flex flex-row justify-between items-center">
           <div className="flex items-center gap-1 sm:gap-2 text-xl sm:text-2xl font-bold">
             <WashingMachine size={24} className="sm:w-[27px] sm:h-[27px]" />
-            <span className="truncate">NorthEnd</span>
+            <span className="truncate">4MJ's</span>
           </div>
           <div className="flex gap-2 sm:gap-3">
             {user ? (

@@ -17,6 +17,7 @@ export default function StaffDashboard() {
   
   // Get all services for recent activity
   const allOrders = useQuery(api.laundryOrdersQueries.getAllOrders, {});
+  const tankStatus = useQuery(api.waterTank.getTankStatus);
 
   useEffect(() => {
     if (user === undefined) return;
@@ -106,6 +107,21 @@ export default function StaffDashboard() {
                 Welcome back, {user.name || user.email}
               </p>
             </div>
+
+            {/* Water Tank Alert Banner */}
+            {tankStatus && (tankStatus.needsRefillUrgent || tankStatus.needsRefillSoon) && (
+              <div className={`mb-6 p-4 rounded-lg border flex items-start gap-3 ${tankStatus.needsRefillUrgent ? "bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700" : "bg-orange-50 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700"}`}>
+                <span className="text-2xl">{tankStatus.needsRefillUrgent ? "🔴" : "🟠"}</span>
+                <div>
+                  <p className={`font-semibold ${tankStatus.needsRefillUrgent ? "text-red-800 dark:text-red-200" : "text-orange-800 dark:text-orange-200"}`}>
+                    {tankStatus.needsRefillUrgent ? "Urgent: Water Tanks Need Refilling" : "Water Running Low"}
+                  </p>
+                  <p className={`text-sm mt-0.5 ${tankStatus.needsRefillUrgent ? "text-red-600 dark:text-red-400" : "text-orange-600 dark:text-orange-400"}`}>
+                    {tankStatus.tanksRemaining} tank(s) ({tankStatus.remainingLiters}L) remaining out of {tankStatus.totalTanks} tanks ({tankStatus.percentRemaining}% left). Please inform the admin.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Dashboard Stats/Cards */}
             {!orderStats ? (

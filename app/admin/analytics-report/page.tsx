@@ -210,7 +210,7 @@ export default function AnalyticsReportPage() {
   // Export to CSV
   const exportToCSV = () => {
     const csvData = [
-      ["=== NORTHEND LAUNDRY - ADVANCED ANALYTICS REPORT ==="],
+      ["=== 4MJ'S LAUNDRY - ADVANCED ANALYTICS REPORT ==="],
       [""],
       ["Report Generated:", new Date().toLocaleString()],
       ["Date Range:", `${dateRange.start.toLocaleDateString()} to ${dateRange.end.toLocaleDateString()}`],
@@ -283,7 +283,7 @@ export default function AnalyticsReportPage() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `NorthEnd-Analytics-${dateRange.start.toISOString().split('T')[0]}-to-${dateRange.end.toISOString().split('T')[0]}.csv`;
+    a.download = `4MJs-Analytics-${dateRange.start.toISOString().split('T')[0]}-to-${dateRange.end.toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };

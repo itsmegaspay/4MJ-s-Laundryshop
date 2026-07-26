@@ -64,6 +64,9 @@ export default function AdminDashboard() {
   });
 
   const alerts = useQuery(api.analytics.getActiveAlerts);
+  const tankStatus = useQuery(api.waterTank.getTankStatus);
+  const refillTanks = useMutation(api.waterTank.refillTanks);
+  const [isRefilling, setIsRefilling] = useState(false);
 
   if (user === undefined || !dashboardStats) {
     return (
@@ -425,53 +428,116 @@ export default function AdminDashboard() {
                     </p>
                   </div>
 
-                  {/* Water Consumption Section */}
-                  {waterConsumption && (
-                    <>
-                      <div className="col-span-full mt-2">
-                        <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2 mb-3">💧 Water Consumption Monitor</h3>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-                            <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Total Water Used</p>
-                            <p className="text-xl font-bold text-blue-800 dark:text-blue-200">{(waterConsumption.totalLiters||0).toLocaleString()} L</p>
-                          </div>
-                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-                            <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Total Drums (200L)</p>
-                            <p className="text-xl font-bold text-blue-800 dark:text-blue-200">{waterConsumption.totalDrums||0} drums</p>
-                          </div>
-                          <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-700 rounded-lg p-4">
-                            <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-1">Avg Water/Day</p>
-                            <p className="text-xl font-bold text-cyan-800 dark:text-cyan-200">{(waterConsumption.avgWaterPerDay||0)} L</p>
-                          </div>
-                          <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-700 rounded-lg p-4">
-                            <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-1">Avg Drums/Day</p>
-                            <p className="text-xl font-bold text-cyan-800 dark:text-cyan-200">{waterConsumption.avgDrumsPerDay||0} drums</p>
+                  {/* Water Tank Monitor - Realistic Tracking */}
+                  {tankStatus && (
+                    <div className="col-span-full mt-2">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2">💧 Water Tank Monitor</h3>
+                        <button
+                          onClick={async () => {
+                            if (window.confirm(`Confirm that all ${tankStatus.totalTanks} tanks have been refilled to full (${tankStatus.totalCapacityLiters}L)?`)) {
+                              setIsRefilling(true);
+                              try { await refillTanks({}); } finally { setIsRefilling(false); }
+                            }
+                          }}
+                          disabled={isRefilling}
+                          className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50"
+                        >
+                          {isRefilling ? "Refilling..." : "🔄 Mark Tanks Refilled"}
+                        </button>
+                      </div>
+
+                      {/* Refill Alert Banner */}
+                      {tankStatus.needsRefillUrgent && (
+                        <div className="mb-3 p-4 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg flex items-start gap-3">
+                          <span className="text-2xl">🔴</span>
+                          <div>
+                            <p className="font-semibold text-red-800 dark:text-red-200">Urgent: Refill Water Tanks Now</p>
+                            <p className="text-sm text-red-600 dark:text-red-400 mt-0.5">
+                              Only {tankStatus.tanksRemaining} tank(s) ({tankStatus.remainingLiters}L) remaining out of {tankStatus.totalTanks} tanks. Refill {(tankStatus.totalTanks - tankStatus.tanksRemaining).toFixed(1)} tank(s) / {tankStatus.usedLiters}L needed.
+                            </p>
                           </div>
                         </div>
-                        <div className="mt-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-                          <p className="text-xs font-semibold text-slate-500 uppercase mb-2">By Service Type</p>
-                          <div className="space-y-1.5 text-sm">
-                            {[
-                              ["Regular Clothes", waterConsumption.byService?.regularClothes||0, "50L/load"],
-                              ["Assorted Clothes", waterConsumption.byService?.assortedClothes||0, "50L/load"],
-                              ["Towel & Blankets", waterConsumption.byService?.towelBlankets||0, "60L/load"],
-                              ["Comforter", waterConsumption.byService?.comforter||0, "70L/load"],
-                              ["Self-Service Wash", waterConsumption.byService?.selfServiceWash||0, "45L/session"],
-                              ["Self-Service Spin", waterConsumption.byService?.selfServiceSpin||0, "5L/session"],
-                            ].filter(([,v]) => (v as number)>0).map(([label, liters, rate]) => (
-                              <div key={label as string} className="flex justify-between items-center">
-                                <span className="text-slate-600 dark:text-slate-400">{label as string} <span className="text-xs text-slate-400">({rate as string})</span></span>
-                                <span className="font-medium text-blue-700 dark:text-blue-300">{(liters as number).toLocaleString()} L ({Math.ceil((liters as number)/200)} drums)</span>
-                              </div>
-                            ))}
+                      )}
+                      {tankStatus.needsRefillSoon && !tankStatus.needsRefillUrgent && (
+                        <div className="mb-3 p-4 bg-orange-50 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 rounded-lg flex items-start gap-3">
+                          <span className="text-2xl">🟠</span>
+                          <div>
+                            <p className="font-semibold text-orange-800 dark:text-orange-200">Water Running Low — Plan a Refill Soon</p>
+                            <p className="text-sm text-orange-600 dark:text-orange-400 mt-0.5">
+                              {tankStatus.tanksRemaining} tank(s) ({tankStatus.remainingLiters}L) remaining out of {tankStatus.totalTanks} tanks.
+                            </p>
                           </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">Tanks Used</p>
+                          <p className="text-xl font-bold text-blue-800 dark:text-blue-200">{tankStatus.tanksUsed} / {tankStatus.totalTanks} tanks</p>
+                          <p className="text-xs text-blue-500 mt-0.5">{tankStatus.usedLiters}L used</p>
+                        </div>
+                        <div className={`rounded-lg p-4 border ${tankStatus.needsRefillUrgent ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700" : tankStatus.needsRefillSoon ? "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700" : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700"}`}>
+                          <p className={`text-xs mb-1 ${tankStatus.needsRefillUrgent ? "text-red-600 dark:text-red-400" : tankStatus.needsRefillSoon ? "text-orange-600 dark:text-orange-400" : "text-green-600 dark:text-green-400"}`}>Tanks Remaining</p>
+                          <p className={`text-xl font-bold ${tankStatus.needsRefillUrgent ? "text-red-800 dark:text-red-200" : tankStatus.needsRefillSoon ? "text-orange-800 dark:text-orange-200" : "text-green-800 dark:text-green-200"}`}>{tankStatus.tanksRemaining} tanks</p>
+                          <p className="text-xs mt-0.5 opacity-70">{tankStatus.remainingLiters}L left ({tankStatus.percentRemaining}%)</p>
+                        </div>
+                        <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-700 rounded-lg p-4">
+                          <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-1">Tank Capacity</p>
+                          <p className="text-xl font-bold text-cyan-800 dark:text-cyan-200">{tankStatus.totalCapacityLiters}L</p>
+                          <p className="text-xs text-cyan-500 mt-0.5">{tankStatus.totalTanks} × {tankStatus.tankCapacityLiters}L tanks</p>
+                        </div>
+                        <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-700 rounded-lg p-4">
+                          <p className="text-xs text-cyan-600 dark:text-cyan-400 mb-1">Last Refilled</p>
+                          <p className="text-sm font-bold text-cyan-800 dark:text-cyan-200">
+                            {tankStatus.lastRefillAt ? new Date(tankStatus.lastRefillAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : "Never recorded"}
+                          </p>
+                          <p className="text-xs text-cyan-500 mt-0.5">Since this refill</p>
                         </div>
                       </div>
-                    </>
+
+                      {/* Visual tank level bar */}
+                      <div className="mt-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-semibold text-slate-500 uppercase">Water Level</p>
+                          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{tankStatus.percentRemaining}% remaining</p>
+                        </div>
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-4 overflow-hidden">
+                          <div
+                            className={`h-4 rounded-full transition-all duration-500 ${tankStatus.percentRemaining <= 10 ? "bg-red-500" : tankStatus.percentRemaining <= 30 ? "bg-orange-500" : "bg-green-500"}`}
+                            style={{ width: `${tankStatus.percentRemaining}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* By Service Type breakdown */}
+                      <div className="mt-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                        <p className="text-xs font-semibold text-slate-500 uppercase mb-2">Usage By Service Type (since last refill)</p>
+                        <div className="space-y-1.5 text-sm">
+                          {[
+                            ["Regular Clothes", tankStatus.usedByService?.regularClothes || 0, "50L/load"],
+                            ["Assorted Clothes", tankStatus.usedByService?.assortedClothes || 0, "50L/load"],
+                            ["Towel & Blankets", tankStatus.usedByService?.towelBlankets || 0, "60L/load"],
+                            ["Comforter", tankStatus.usedByService?.comforter || 0, "70L/load"],
+                            ["Self-Service Wash", tankStatus.usedByService?.selfServiceWash || 0, "45L/session"],
+                            ["Self-Service Spin", tankStatus.usedByService?.selfServiceSpin || 0, "5L/session"],
+                          ].filter(([, v]) => (v as number) > 0).map(([label, liters, rate]) => (
+                            <div key={label as string} className="flex justify-between items-center">
+                              <span className="text-slate-600 dark:text-slate-400">{label as string} <span className="text-xs text-slate-400">({rate as string})</span></span>
+                              <span className="font-medium text-blue-700 dark:text-blue-300">{(liters as number).toLocaleString()} L</span>
+                            </div>
+                          ))}
+                          {tankStatus.usedLiters === 0 && (
+                            <p className="text-slate-400 text-sm">No water usage recorded since last refill.</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
             )}
+
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

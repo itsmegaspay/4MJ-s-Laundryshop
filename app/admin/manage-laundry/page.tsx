@@ -552,10 +552,20 @@ export default function ManageLaundryPage() {
 
               console.log('Step 1: Generating laundry ID...');
               const orderId = await generateOrderId();
-              
               console.log('Generated laundry ID:', orderId);
-              console.log('Step 2: Sending confirmation email...');
-              
+
+              // STEP 2: Create the service FIRST — this must always succeed
+              // regardless of whether the email can be sent, so no customer's
+              // service is ever silently dropped due to an email/SMTP hiccup.
+              console.log('Step 2: Creating service in database...');
+              await createOrder({
+                ...data,
+                orderId: orderId,
+              });
+              console.log('Service created successfully!');
+
+              // STEP 3: Attempt to send confirmation email (best-effort, non-blocking)
+              console.log('Step 3: Sending confirmation email...');
               const emailResult = await sendOrderEmail(
                 {
                   orderId: orderId,
@@ -565,22 +575,12 @@ export default function ManageLaundryPage() {
                 customer.email,
                 customer.name
               );
-              
-              if (!emailResult.success) {
-                throw new Error(`Failed to send confirmation email: ${emailResult.error}`);
+
+              if (emailResult.success) {
+                alert(`✅ Laundry ${orderId} created successfully!\n\nConfirmation email sent to ${customer.email}`);
+              } else {
+                alert(`✅ Laundry ${orderId} created successfully!\n\n⚠️ Note: Confirmation email could not be sent (${emailResult.error}).\nThe service was still created — please notify the customer manually or check email settings.`);
               }
-              
-              console.log('Email sent successfully!');
-              console.log('Step 3: Creating laundry in database...');
-              
-              await createOrder({
-                ...data,
-                orderId: orderId,
-              });
-              
-              console.log('Laundry created successfully!');
-              
-              alert(`✅ Laundry ${orderId} created successfully!\n\nConfirmation email sent to ${customer.email}`);
               setIsCreateModalOpen(false);
               
             } catch (error: any) {

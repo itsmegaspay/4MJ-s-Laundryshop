@@ -220,4 +220,12 @@ export default defineSchema({
     .index("by_is_read", ["isRead"])
     .index("by_created_at", ["createdAt"])
     .index("by_resolved", ["isResolved"]), // Index for filtering resolved alerts
+
+  waterTankStatus: defineTable({
+    totalTanks: v.number(), // e.g. 3
+    tankCapacityLiters: v.number(), // e.g. 200 per tank
+    lastRefillAt: v.number(), // timestamp of last full refill
+    lastRefillBy: v.optional(v.id("users")),
+    updatedAt: v.number(),
+  }),
 });

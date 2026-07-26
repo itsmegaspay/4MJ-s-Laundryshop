@@ -168,7 +168,7 @@ export default function TrackPage() {
           <div className="px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/" className="flex items-center gap-1 sm:gap-2 text-xl sm:text-2xl font-bold">
               <WashingMachine size={24} className="sm:w-[27px] sm:h-[27px]" />
-              <span>NorthEnd</span>
+              <span>4MJ's</span>
             </Link>
           </div>
         </header>
@@ -197,7 +197,7 @@ export default function TrackPage() {
           <div className="px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/" className="flex items-center gap-1 sm:gap-2 text-xl sm:text-2xl font-bold">
               <WashingMachine size={24} className="sm:w-[27px] sm:h-[27px]" />
-              <span>NorthEnd</span>
+              <span>4MJ's</span>
             </Link>
           </div>
         </header>
@@ -218,7 +218,7 @@ export default function TrackPage() {
           <div className="px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/" className="flex items-center gap-1 sm:gap-2 text-xl sm:text-2xl font-bold">
               <WashingMachine size={24} className="sm:w-[27px] sm:h-[27px]" />
-              <span>NorthEnd</span>
+              <span>4MJ's</span>
             </Link>
           </div>
         </header>
@@ -256,7 +256,7 @@ export default function TrackPage() {
         <div className="px-4 py-3 sm:px-6 sm:py-4 flex flex-row justify-between items-center">
           <Link href="/" className="flex items-center gap-1 sm:gap-2 text-xl sm:text-2xl font-bold">
             <WashingMachine size={24} className="sm:w-[27px] sm:h-[27px]" />
-            <span>NorthEnd</span>
+            <span>4MJ's</span>
           </Link>
           <Button variant="ghost" size="sm" onClick={() => router.push("/")} className="text-xs sm:text-sm">
             <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
