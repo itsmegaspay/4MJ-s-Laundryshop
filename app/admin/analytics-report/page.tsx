@@ -582,24 +582,52 @@ export default function AnalyticsReportPage() {
                 <InsightCard
                   title="Revenue Trend"
                   description={
-                    revenueChange >= 10
+                    previousRevenue === 0
+                      ? currentRevenue > 0
+                        ? "No revenue recorded in the previous period to compare against yet — check back once more history builds up."
+                        : "No revenue recorded in either period."
+                      : revenueChange >= 10
                       ? `Revenue increased by ${revenueChange.toFixed(1)}% compared to the previous period. Excellent growth!`
-                      : revenueChange >= 0
+                      : revenueChange > 0
                       ? `Revenue slightly increased by ${revenueChange.toFixed(1)}% compared to the previous period.`
+                      : revenueChange === 0
+                      ? "Revenue remained exactly the same as the previous period."
                       : `Revenue decreased by ${Math.abs(revenueChange).toFixed(1)}%. Consider promotional campaigns.`
                   }
-                  severity={revenueChange >= 10 ? "green" : revenueChange >= 0 ? "orange" : "red"}
+                  severity={
+                    previousRevenue === 0
+                      ? "orange"
+                      : revenueChange >= 10
+                      ? "green"
+                      : revenueChange >= 0
+                      ? "orange"
+                      : "red"
+                  }
                 />
                 <InsightCard
                   title="Service Volume"
                   description={
-                    ordersChange >= 10
+                    previousOrders === 0
+                      ? currentOrders > 0
+                        ? "No services recorded in the previous period to compare against yet — check back once more history builds up."
+                        : "No services recorded in either period."
+                      : ordersChange >= 10
                       ? `Services increased by ${ordersChange.toFixed(1)}%. Customer demand is growing!`
-                      : ordersChange >= 0
+                      : ordersChange > 0
                       ? `Services slightly increased by ${ordersChange.toFixed(1)}%.`
+                      : ordersChange === 0
+                      ? "Service volume remained exactly the same as the previous period."
                       : `Services decreased by ${Math.abs(ordersChange).toFixed(1)}%. Focus on customer acquisition.`
                   }
-                  severity={ordersChange >= 10 ? "green" : ordersChange >= 0 ? "orange" : "red"}
+                  severity={
+                    previousOrders === 0
+                      ? "orange"
+                      : ordersChange >= 10
+                      ? "green"
+                      : ordersChange >= 0
+                      ? "orange"
+                      : "red"
+                  }
                 />
                 <InsightCard
                   title="Customer Base"
