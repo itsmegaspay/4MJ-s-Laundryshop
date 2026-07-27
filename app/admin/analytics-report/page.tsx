@@ -435,6 +435,7 @@ export default function AnalyticsReportPage() {
                   change={revenueChange}
                   format="currency"
                   icon={DollarSign}
+                  hasPreviousData={previousOrders > 0}
                 />
                 <ComparisonCard
                   title="Total Services"
@@ -443,6 +444,7 @@ export default function AnalyticsReportPage() {
                   change={ordersChange}
                   format="number"
                   icon={Package}
+                  hasPreviousData={previousOrders > 0}
                 />
                 <ComparisonCard
                   title="Avg Service Value"
@@ -451,6 +453,7 @@ export default function AnalyticsReportPage() {
                   change={avgValueChange}
                   format="currency"
                   icon={TrendingUp}
+                  hasPreviousData={previousOrders > 0}
                 />
                 <ComparisonCard
                   title="Completion Rate"
@@ -459,6 +462,7 @@ export default function AnalyticsReportPage() {
                   change={completionRateChange}
                   format="percentage"
                   icon={Clock}
+                  hasPreviousData={previousOrders > 0}
                 />
               </div>
             </div>
@@ -670,6 +674,7 @@ function ComparisonCard({
   change,
   format,
   icon: Icon,
+  hasPreviousData = true,
 }: {
   title: string;
   current: number;
@@ -677,6 +682,7 @@ function ComparisonCard({
   change: number;
   format: "currency" | "number" | "percentage";
   icon: any;
+  hasPreviousData?: boolean;
 }) {
   const formatValue = (value: number) => {
     if (value === undefined || value === null || isNaN(value)) return format === "percentage" ? "0.0%" : format === "currency" ? "₱0" : "0";
@@ -710,10 +716,12 @@ function ComparisonCard({
         <div>
           <p className="text-xs text-slate-500 dark:text-slate-400">Previous</p>
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-            {formatValue(previous)}
+            {hasPreviousData ? formatValue(previous) : (
+              <span className="italic text-slate-400 dark:text-slate-500 font-normal">No prior data</span>
+            )}
           </p>
         </div>
-        {change !== 0 && (
+        {hasPreviousData && change !== 0 && (
           <div
             className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${
               isPositive
