@@ -511,9 +511,14 @@ function calculateServiceTypeDistribution(orders: any[]): {
   let blanketsThickCount = 0;
 
   orders.forEach((order) => {
-    if (order.orderType.clothes) clothesCount++;
-    if (order.orderType.blanketsLight) blanketsLightCount++;
-    if (order.orderType.blanketsThick) blanketsThickCount++;
+    const ot = order.orderType || {};
+    // "Regular / Assorted Clothes" covers new fields (regularClothes, assortedClothes)
+    // as well as the legacy "clothes" field
+    if (ot.regularClothes || ot.assortedClothes || ot.clothes) clothesCount++;
+    // "Towel & Blankets" covers new "towelBlankets" and legacy "blanketsLight"
+    if (ot.towelBlankets || ot.blanketsLight) blanketsLightCount++;
+    // "Comforter" covers new "comforter" and legacy "blanketsThick"
+    if (ot.comforter || ot.blanketsThick) blanketsThickCount++;
   });
 
   const total = clothesCount + blanketsLightCount + blanketsThickCount || 1;
