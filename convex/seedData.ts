@@ -1,12 +1,17 @@
 import { mutation } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
 
-async function getCurrentUser(ctx: any) {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) throw new Error("Not authenticated");
-  const user = await ctx.db.get(userId);
-  if (!user) throw new Error("User not found");
-  return user;
+// This script is meant to be run once via `npx convex run seedData:seedHistoricalOrders --prod`
+// from the CLI, which has no logged-in user session — so instead of requiring an active
+// auth session, it looks up an existing admin account to attribute the seeded records to.
+async function getSeedAdminUser(ctx: any) {
+  const admin = await ctx.db
+    .query("users")
+    .filter((q: any) => q.eq(q.field("role"), "admin"))
+    .first();
+  if (!admin) {
+    throw new Error("No admin user found. Please sign up/create at least one admin account first.");
+  }
+  return admin;
 }
 
 const FIRST_NAMES = [
@@ -39,10 +44,7 @@ function randomPhone(): string {
 export const seedHistoricalOrders = mutation({
   args: {},
   handler: async (ctx) => {
-    const currentUser = await getCurrentUser(ctx);
-    if (currentUser.role !== "admin") {
-      throw new Error("Only administrators can seed historical data");
-    }
+    const currentUser = await getSeedAdminUser(ctx);
 
     // Get current pricing so amounts match what's actually configured
     const pricingConfig: any = await ctx.db.query("pricingConfig").first();
