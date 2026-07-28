@@ -18,6 +18,7 @@ import type * as http from "../http.js";
 import type * as laundryOrders from "../laundryOrders.js";
 import type * as laundryOrdersQueries from "../laundryOrdersQueries.js";
 import type * as pricingConfig from "../pricingConfig.js";
+import type * as seedData from "../seedData.js";
 import type * as users from "../users.js";
 import type * as waterTank from "../waterTank.js";
 
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   laundryOrders: typeof laundryOrders;
   laundryOrdersQueries: typeof laundryOrdersQueries;
   pricingConfig: typeof pricingConfig;
+  seedData: typeof seedData;
   users: typeof users;
   waterTank: typeof waterTank;
 }>;

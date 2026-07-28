@@ -26,7 +26,7 @@ const LAST_NAMES = [
   "Ignacio", "Roque", "Soriano",
 ];
 
-function randomChoice<T>(arr: T[]): T {
+function randomChoice<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 function randomInt(min: number, max: number): number {
