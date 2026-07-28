@@ -637,6 +637,24 @@ function ViewOrderModal({
 
   const totalPrice = calculateTotal();
 
+  // Water availability check for this service
+  const drumStatus = useQuery(api.waterTank.getDrumStatus);
+  const calculateWaterNeeded = () => {
+    if (!drumStatus) return 0;
+    const r = drumStatus.ratesPerService as any;
+    let liters = 0;
+    if ((order.orderType.regularClothes || order.orderType.clothes) && weight.regularClothes > 0) liters += weight.regularClothes * r.regularClothes;
+    if (order.orderType.assortedClothes && weight.assortedClothes > 0) liters += weight.assortedClothes * r.assortedClothes;
+    if ((order.orderType.towelBlankets || order.orderType.blanketsLight) && weight.towelBlankets > 0) liters += weight.towelBlankets * r.towelBlankets;
+    if ((order.orderType.comforter || order.orderType.blanketsThick) && weight.comforter > 0) liters += weight.comforter * r.comforter;
+    if (order.orderType.selfServiceWash && weight.selfServiceWash > 0) liters += weight.selfServiceWash * r.selfServiceWash;
+    if (order.orderType.selfServiceSpin && weight.selfServiceSpin > 0) liters += weight.selfServiceSpin * r.selfServiceSpin;
+    if (order.orderType.selfServiceDry && weight.selfServiceDry > 0) liters += weight.selfServiceDry * r.selfServiceDry;
+    return liters;
+  };
+  const waterNeeded = calculateWaterNeeded();
+  const waterInsufficient = drumStatus ? waterNeeded > drumStatus.remainingLiters : false;
+
   // Check if all required weights are entered
   const areAllWeightsEntered = () => {
     if ((order.orderType.regularClothes || order.orderType.clothes) && weight.regularClothes <= 0) return false;
@@ -876,6 +894,19 @@ function ViewOrderModal({
                 ))}
               </div>
 
+              {/* Water Availability Warning */}
+              {waterInsufficient && waterNeeded > 0 && (
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg flex items-start gap-2">
+                  <span className="text-lg">🔴</span>
+                  <div>
+                    <p className="text-sm font-semibold text-red-800 dark:text-red-200">Not enough water to complete this service</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                      This service needs ~{waterNeeded}L, but only {drumStatus?.remainingLiters ?? 0}L ({drumStatus?.drumsRemaining ?? 0} drums) remain. Please inform the admin to refill before proceeding.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Total Price Display */}
               <div className="bg-slate-100 dark:bg-slate-900 rounded-lg p-4 mb-4">
                 <div className="flex justify-between items-center">
@@ -891,7 +922,7 @@ function ViewOrderModal({
                 disabled={!areAllWeightsEntered() || isMarkingReady}
                 className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isMarkingReady ? 'Sending notification...' : `Mark as Ready - ₱${totalPrice.toFixed(2)}`}
+                {isMarkingReady ? 'Sending notification...' : waterInsufficient ? `⚠️ Mark as Ready Anyway - ₱${totalPrice.toFixed(2)}` : `Mark as Ready - ₱${totalPrice.toFixed(2)}`}
               </button>
               {!areAllWeightsEntered() && (
                 <p className="text-xs text-red-600 dark:text-red-400 mt-2 text-center">

@@ -234,6 +234,15 @@ export const getAllCustomers = query({
   },
 });
 
+// Returns ALL customers regardless of active status — used for analytics/reporting
+// so historical orders from deactivated customers are still counted correctly.
+export const getAllCustomersForAnalytics = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("customers").order("desc").collect();
+  },
+});
+
 // Get customer by ID
 export const getCustomerById = query({
   args: { customerId: v.id("customers") },

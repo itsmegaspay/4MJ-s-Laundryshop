@@ -57,7 +57,9 @@ export const getDrumStatus = query({
 
     const remainingLiters = Math.max(0, totalCapacityLiters - usedLiters);
     const drumsUsed = Math.round((usedLiters / drumCapacityLiters) * 10) / 10; // e.g. 0.6
-    const drumsRemaining = Math.round((remainingLiters / drumCapacityLiters) * 10) / 10;
+    // Derive drumsRemaining from drumsUsed (not independently rounded) so the two
+    // always sum exactly to totalDrums instead of drifting apart from rounding.
+    const drumsRemaining = Math.round((totalDrums - drumsUsed) * 10) / 10;
     const percentRemaining = totalCapacityLiters > 0 ? Math.round((remainingLiters / totalCapacityLiters) * 100) : 0;
 
     // Alert thresholds
@@ -76,6 +78,17 @@ export const getDrumStatus = query({
       needsRefillSoon,
       needsRefillUrgent,
       lastRefillAt,
+      // Exposed so the UI can calculate exact water needs for a given order
+      // without duplicating/hardcoding these rates on the client.
+      ratesPerService: {
+        regularClothes: WATER_PER_SERVICE.regularClothes,
+        assortedClothes: WATER_PER_SERVICE.assortedClothes,
+        towelBlankets: WATER_PER_SERVICE.towelBlankets,
+        comforter: WATER_PER_SERVICE.comforter,
+        selfServiceWash: WATER_PER_SERVICE.selfServiceWash,
+        selfServiceSpin: WATER_PER_SERVICE.selfServiceSpin,
+        selfServiceDry: WATER_PER_SERVICE.selfServiceDry,
+      },
       usedByService: {
         regularClothes: Math.round(usedByService.regularClothes || usedByService.clothes || 0),
         assortedClothes: Math.round(usedByService.assortedClothes || 0),

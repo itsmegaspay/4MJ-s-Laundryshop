@@ -82,7 +82,7 @@ export default function AnalyticsReportPage() {
 
   // Fetch all services for custom analysis
   const allOrders = useQuery(api.laundryOrdersQueries.getAllOrders, {});
-  const allCustomers = useQuery(api.customers.getAllCustomers);
+  const allCustomers = useQuery(api.customers.getAllCustomersForAnalytics);
 
   if (user === undefined || !allOrders || !allCustomers) {
     return (
@@ -207,22 +207,29 @@ export default function AnalyticsReportPage() {
   });
 
   // SERVICE TYPE REVENUE BREAKDOWN
-  let clothesRevenue = 0;
-  let blanketsLightRevenue = 0;
-  let blanketsThickRevenue = 0;
+  let regularClothesRevenue = 0;
+  let assortedClothesRevenue = 0;
+  let towelBlanketsRevenue = 0;
+  let comforterRevenue = 0;
+  let selfServiceRevenue = 0;
 
   filteredOrders.forEach((order) => {
     if (order.pricing) {
-      clothesRevenue += order.pricing.clothesPrice || 0;
-      blanketsLightRevenue += order.pricing.blanketsLightPrice || 0;
-      blanketsThickRevenue += order.pricing.blanketsThickPrice || 0;
+      const p: any = order.pricing;
+      regularClothesRevenue += p.regularClothesPrice || p.clothesPrice || 0;
+      assortedClothesRevenue += p.assortedClothesPrice || 0;
+      towelBlanketsRevenue += p.towelBlanketsPrice || p.blanketsLightPrice || 0;
+      comforterRevenue += p.comforterPrice || p.blanketsThickPrice || 0;
+      selfServiceRevenue += (p.selfServiceWashPrice || 0) + (p.selfServiceSpinPrice || 0) + (p.selfServiceDryPrice || 0);
     }
   });
 
   const serviceRevenueData = [
-    { name: "Clothes", value: clothesRevenue, color: "#3b82f6" },
-    { name: "Light Blankets", value: blanketsLightRevenue, color: "#8b5cf6" },
-    { name: "Thick Blankets", value: blanketsThickRevenue, color: "#f59e0b" },
+    { name: "Regular Clothes", value: regularClothesRevenue, color: "#3b82f6" },
+    { name: "Assorted Clothes", value: assortedClothesRevenue, color: "#6366f1" },
+    { name: "Towel & Blankets", value: towelBlanketsRevenue, color: "#8b5cf6" },
+    { name: "Comforter", value: comforterRevenue, color: "#f59e0b" },
+    { name: "Self-Service", value: selfServiceRevenue, color: "#10b981" },
   ].filter((item) => item.value > 0);
 
   // Customer Segment Data
@@ -272,9 +279,11 @@ export default function AnalyticsReportPage() {
       [""],
       ["Revenue by Service Type"],
       ["Service Type", "Revenue (₱)", "Percentage of Total"],
-      ["Clothes", clothesRevenue.toFixed(2), `${((clothesRevenue / (currentRevenue || 1)) * 100).toFixed(1)}%`],
-      ["Light Blankets", blanketsLightRevenue.toFixed(2), `${((blanketsLightRevenue / (currentRevenue || 1)) * 100).toFixed(1)}%`],
-      ["Thick Blankets", blanketsThickRevenue.toFixed(2), `${((blanketsThickRevenue / (currentRevenue || 1)) * 100).toFixed(1)}%`],
+      ["Regular Clothes", regularClothesRevenue.toFixed(2), `${((regularClothesRevenue / (currentRevenue || 1)) * 100).toFixed(1)}%`],
+      ["Assorted Clothes", assortedClothesRevenue.toFixed(2), `${((assortedClothesRevenue / (currentRevenue || 1)) * 100).toFixed(1)}%`],
+      ["Towel & Blankets", towelBlanketsRevenue.toFixed(2), `${((towelBlanketsRevenue / (currentRevenue || 1)) * 100).toFixed(1)}%`],
+      ["Comforter", comforterRevenue.toFixed(2), `${((comforterRevenue / (currentRevenue || 1)) * 100).toFixed(1)}%`],
+      ["Self-Service", selfServiceRevenue.toFixed(2), `${((selfServiceRevenue / (currentRevenue || 1)) * 100).toFixed(1)}%`],
       ["TOTAL REVENUE", currentRevenue.toFixed(2), "100%"],
       [""],
       ["Revenue by Day of Week"],
