@@ -63,6 +63,7 @@ export default function AnalyticsReportPage() {
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
     end: new Date(),
   }));
+  const [activeRangeMode, setActiveRangeMode] = useState<"7" | "30" | "90" | "custom">("30");
   const [customRange, setCustomRange] = useState({
     start: "",
     end: "",
@@ -105,6 +106,7 @@ export default function AnalyticsReportPage() {
         start: new Date(customRange.start),
         end: new Date(customRange.end + "T23:59:59"),
       });
+      setActiveRangeMode("custom");
       setShowDatePicker(false);
     }
   };
@@ -115,6 +117,7 @@ export default function AnalyticsReportPage() {
       start: new Date(Date.now() - days * 24 * 60 * 60 * 1000),
       end: new Date(),
     });
+    setActiveRangeMode(String(days) as "7" | "30" | "90");
     setShowDatePicker(false);
   };
 
@@ -347,19 +350,31 @@ export default function AnalyticsReportPage() {
                 {/* Quick Range Buttons */}
                 <button
                   onClick={() => setQuickRange(7)}
-                  className="px-3 py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    activeRangeMode === "7"
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                  }`}
                 >
                   Last 7 Days
                 </button>
                 <button
                   onClick={() => setQuickRange(30)}
-                  className="px-3 py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    activeRangeMode === "30"
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                  }`}
                 >
                   Last 30 Days
                 </button>
                 <button
                   onClick={() => setQuickRange(90)}
-                  className="px-3 py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    activeRangeMode === "90"
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                  }`}
                 >
                   Last 90 Days
                 </button>
@@ -367,7 +382,11 @@ export default function AnalyticsReportPage() {
                 {/* Custom Range Toggle */}
                 <button
                   onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-blue-100 dark:bg-blue-950/30 hover:bg-blue-200 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-400 transition-colors"
+                  className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    activeRangeMode === "custom"
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-blue-100 dark:bg-blue-950/30 hover:bg-blue-200 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-400"
+                  }`}
                 >
                   <Filter size={16} />
                   Custom Range
