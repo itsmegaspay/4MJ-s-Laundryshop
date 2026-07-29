@@ -102,9 +102,23 @@ export default function AnalyticsReportPage() {
   // Apply custom date range filter
   const applyCustomRange = () => {
     if (customRange.start && customRange.end) {
+      // Parse "YYYY-MM-DD" into explicit local year/month/day components.
+      // (Passing the raw string to `new Date()` is ambiguous: a date-only
+      // string like "2026-07-20" is parsed as UTC midnight, while a
+      // date-time string with no timezone suffix like "2026-07-20T23:59:59"
+      // is parsed as *local* time. Mixing the two meant the start and end
+      // boundaries used different timezone rules, so a custom range never
+      // lined up with the equivalent quick-range preset.)
+      const [startYear, startMonth, startDay] = customRange.start
+        .split("-")
+        .map(Number);
+      const [endYear, endMonth, endDay] = customRange.end
+        .split("-")
+        .map(Number);
+
       setDateRange({
-        start: new Date(customRange.start),
-        end: new Date(customRange.end + "T23:59:59"),
+        start: new Date(startYear, startMonth - 1, startDay, 0, 0, 0, 0),
+        end: new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999),
       });
       setActiveRangeMode("custom");
       setShowDatePicker(false);
@@ -618,8 +632,10 @@ export default function AnalyticsReportPage() {
                       ? currentRevenue > 0
                         ? "No revenue recorded in the previous period to compare against yet — check back once more history builds up."
                         : "No revenue recorded in either period."
+                      : revenueChange >= 10
+                      ? `Revenue increased by ${revenueChange.toFixed(1)}% compared to the previous period. Excellent growth!`
                       : revenueChange > 0
-                      ? `Revenue increased by ${revenueChange.toFixed(1)}% compared to the previous period. ${revenueChange >= 10 ? "Excellent growth!" : "Keep up the momentum!"}`
+                      ? `Revenue slightly increased by ${revenueChange.toFixed(1)}% compared to the previous period.`
                       : revenueChange === 0
                       ? "Revenue remained exactly the same as the previous period."
                       : `Revenue decreased by ${Math.abs(revenueChange).toFixed(1)}%. Consider promotional campaigns.`
@@ -627,9 +643,9 @@ export default function AnalyticsReportPage() {
                   severity={
                     previousRevenue === 0
                       ? "orange"
-                      : revenueChange > 0
+                      : revenueChange >= 10
                       ? "green"
-                      : revenueChange === 0
+                      : revenueChange >= 0
                       ? "orange"
                       : "red"
                   }
@@ -641,8 +657,10 @@ export default function AnalyticsReportPage() {
                       ? currentOrders > 0
                         ? "No services recorded in the previous period to compare against yet — check back once more history builds up."
                         : "No services recorded in either period."
+                      : ordersChange >= 10
+                      ? `Services increased by ${ordersChange.toFixed(1)}%. Customer demand is growing!`
                       : ordersChange > 0
-                      ? `Services increased by ${ordersChange.toFixed(1)}%. ${ordersChange >= 10 ? "Customer demand is growing!" : "Keep up the momentum!"}`
+                      ? `Services slightly increased by ${ordersChange.toFixed(1)}%.`
                       : ordersChange === 0
                       ? "Service volume remained exactly the same as the previous period."
                       : `Services decreased by ${Math.abs(ordersChange).toFixed(1)}%. Focus on customer acquisition.`
@@ -650,9 +668,9 @@ export default function AnalyticsReportPage() {
                   severity={
                     previousOrders === 0
                       ? "orange"
-                      : ordersChange > 0
+                      : ordersChange >= 10
                       ? "green"
-                      : ordersChange === 0
+                      : ordersChange >= 0
                       ? "orange"
                       : "red"
                   }
