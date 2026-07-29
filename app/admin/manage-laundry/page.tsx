@@ -214,14 +214,21 @@ export default function ManageLaundryPage() {
 
   const formatOrderType = (orderType: any) => {
     const types = [];
-    if (orderType.clothes) types.push("Regular Clothes");
-    if (orderType.blanketsLight) types.push("Towel & Blankets");
-    if (orderType.blanketsThick) types.push("Comforter");
-    // Backward compatibility
-    if (orderType.blankets && !orderType.blanketsLight && !orderType.blanketsThick) {
+    if (orderType.regularClothes) types.push("Regular Clothes");
+    if (orderType.assortedClothes) types.push("Assorted Color Clothes");
+    if (orderType.towelBlankets) types.push("Towel & Blankets");
+    if (orderType.comforter) types.push("Comforter");
+    if (orderType.selfServiceWash) types.push("Wash Only");
+    if (orderType.selfServiceSpin) types.push("Spinning");
+    if (orderType.selfServiceDry) types.push("Dry Only");
+    // Legacy fallback for old orders created before the service menu update
+    if (orderType.clothes && !orderType.regularClothes) types.push("Regular Clothes");
+    if (orderType.blanketsLight && !orderType.towelBlankets) types.push("Towel & Blankets");
+    if (orderType.blanketsThick && !orderType.comforter) types.push("Comforter");
+    if (orderType.blankets && !orderType.blanketsLight && !orderType.blanketsThick && !orderType.towelBlankets && !orderType.comforter) {
       types.push("Blankets");
     }
-    return types.join(", ");
+    return types.length > 0 ? types.join(", ") : "—";
   };
 
   const handleViewOrder = (order: any) => {
@@ -377,7 +384,7 @@ export default function ManageLaundryPage() {
                             Customer
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                            Type
+                            Services
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                             Status
@@ -781,7 +788,7 @@ function ViewOrderModal({
           {/* Order Type */}
           <div>
             <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-              Laundry Type
+              Services Availed
             </label>
             <p className="text-slate-900 dark:text-slate-100">
               {formatOrderType(order.orderType)}

@@ -1,8 +1,8 @@
 import { mutation } from "./_generated/server";
 
-// This script is meant to be run once via `npx convex run seedData:seedHistoricalOrders --prod`
-// from the CLI, which has no logged-in user session — so instead of requiring an active
-// auth session, it looks up an existing admin account to attribute the seeded records to.
+// This script is meant to be run via the CLI (no logged-in session), so instead
+// of requiring an active auth session, it looks up an existing admin account
+// to attribute the seeded records to.
 async function getSeedAdminUser(ctx: any) {
   const admin = await ctx.db
     .query("users")
@@ -14,6 +14,29 @@ async function getSeedAdminUser(ctx: any) {
   return admin;
 }
 
+// ── STEP 0: Remove any data created by a previous run of this seed script ──
+// (identified by the "@example.com" placeholder email domain used before).
+export const clearPreviousSeedData = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const allCustomers = await ctx.db.query("customers").collect();
+    const seedCustomers = allCustomers.filter((c) => c.email?.endsWith("@example.com"));
+    const seedCustomerIds = new Set(seedCustomers.map((c) => c._id));
+
+    const allOrders = await ctx.db.query("laundryOrders").collect();
+    const seedOrders = allOrders.filter((o) => seedCustomerIds.has(o.customerId));
+
+    for (const o of seedOrders) {
+      await ctx.db.delete(o._id);
+    }
+    for (const c of seedCustomers) {
+      await ctx.db.delete(c._id);
+    }
+
+    return { customersRemoved: seedCustomers.length, ordersRemoved: seedOrders.length };
+  },
+});
+
 const FIRST_NAMES = [
   "Juan", "Maria", "Jose", "Ana", "Pedro", "Rosa", "Carlos", "Elena",
   "Miguel", "Carmen", "Antonio", "Josefa", "Francisco", "Teresa", "Manuel",
@@ -22,13 +45,18 @@ const FIRST_NAMES = [
   "Corazon", "Danilo", "Leah", "Reynaldo", "Jasmin", "Rodel", "Precious",
   "Marlon", "Angela", "Bryan", "Kristine", "Erwin", "Michelle", "Jerome",
   "Joan", "Rommel", "Vanessa", "Arnel", "Cherry", "Noel", "Aiza",
+  "Vincent", "Karen", "Dennis", "Judy", "Randy", "Nenita", "Willy",
+  "Susan", "Edgar", "Fe", "Melvin", "Gina", "Alvin", "Rowena",
+  "Larry", "Melody", "Sonny", "Emily", "Wilfredo", "Norma", "Jayson",
+  "Liza", "Ramil", "Perla", "Dexter", "Amalia", "Herbert", "Lorna",
 ];
 const LAST_NAMES = [
   "Santos", "Reyes", "Cruz", "Bautista", "Gonzales", "Ramos", "Flores",
   "Mendoza", "Torres", "Garcia", "Villanueva", "Castro", "Dela Cruz",
   "Aquino", "Rivera", "Pascual", "Marquez", "Gaspay", "Domingo", "Salazar",
   "Fernandez", "Diaz", "Navarro", "Ocampo", "Valdez", "Aguilar", "Manalo",
-  "Ignacio", "Roque", "Soriano",
+  "Ignacio", "Roque", "Soriano", "Pangilinan", "Del Rosario", "Fajardo",
+  "Lazaro", "Macaraeg", "Panganiban", "Tan", "Sy", "Uy", "Lim",
 ];
 
 function randomChoice<T>(arr: readonly T[]): T {
@@ -40,13 +68,34 @@ function randomInt(min: number, max: number): number {
 function randomPhone(): string {
   return "09" + Array.from({ length: 9 }, () => randomInt(0, 9)).join("");
 }
+// Realistic gmail.com address matching patterns like "arneltorres77@gmail.com"
+function randomGmail(fullName: string): string {
+  const clean = fullName.toLowerCase().replace(/[^a-z\s]/g, "").trim();
+  const parts = clean.split(/\s+/);
+  const first = parts[0] || "user";
+  const last = parts[parts.length - 1] || "";
+  const style = randomInt(1, 4);
+  let base: string;
+  if (style === 1) base = `${first}${last}`;
+  else if (style === 2) base = `${first}.${last}`;
+  else if (style === 3) base = `${first}${last[0] || ""}`;
+  else base = `${first[0] || ""}${last}`;
+  const suffix = Math.random() < 0.6 ? randomInt(1, 999) : "";
+  return `${base}${suffix}@gmail.com`;
+}
+// Random timestamp for a given calendar day, constrained to 8:00 AM - 8:00 PM
+function randomTimeOnDay(year: number, month: number, day: number): number {
+  const hour = randomInt(8, 19); // 8am to 7:59pm start, ensures end time stays <= 8pm
+  const minute = randomInt(0, 59);
+  const second = randomInt(0, 59);
+  return new Date(year, month, day, hour, minute, second).getTime();
+}
 
 export const seedHistoricalOrders = mutation({
   args: {},
   handler: async (ctx) => {
     const currentUser = await getSeedAdminUser(ctx);
 
-    // Get current pricing so amounts match what's actually configured
     const pricingConfig: any = await ctx.db.query("pricingConfig").first();
     const prices = {
       regularClothes: pricingConfig?.regularClothesPrice ?? 230,
@@ -58,135 +107,169 @@ export const seedHistoricalOrders = mutation({
       selfServiceDry: pricingConfig?.selfServiceDryPrice ?? 120,
     };
 
-    const now = Date.now();
-    const rangeStart = new Date("2025-04-01T08:00:00").getTime();
-    const rangeEnd = now;
-
-    // ── Step 1: Generate ~45 customers with creation dates spread across the range ──
-    const NUM_CUSTOMERS = 45;
-    const customerIds: any[] = [];
-    const usedNames = new Set<string>();
-
-    for (let i = 0; i < NUM_CUSTOMERS; i++) {
-      let fullName = "";
-      do {
-        fullName = `${randomChoice(FIRST_NAMES)} ${randomChoice(LAST_NAMES)}`;
-      } while (usedNames.has(fullName));
-      usedNames.add(fullName);
-
-      const custCreatedAt = randomInt(rangeStart, rangeEnd);
-      const emailSafe = fullName.toLowerCase().replace(/\s+/g, ".").replace(/[^a-z.]/g, "");
-
-      const custId = await ctx.db.insert("customers", {
-        name: fullName,
-        email: `${emailSafe}${randomInt(1, 999)}@example.com`,
-        phone: randomPhone(),
-        createdAt: custCreatedAt,
-        createdBy: currentUser._id,
-        updatedAt: custCreatedAt,
-        isActive: true,
-      });
-      customerIds.push({ id: custId, createdAt: custCreatedAt });
-    }
-
-    // ── Step 2: Generate 100 orders spread across the range ──
-    const NUM_ORDERS = 100;
+    const now = new Date();
+    const startYear = 2025, startMonth = 3; // April 2025 (0-indexed month)
     const serviceOptions = [
       "regularClothes", "assortedClothes", "towelBlankets", "comforter",
       "selfServiceWash", "selfServiceSpin", "selfServiceDry",
     ] as const;
 
-    // Track how many orders already exist per day, for correct orderId numbering
-    const dailyCounters: Record<string, number> = {};
+    // ── Step 1: Create a growing pool of customers over time ──
+    // Start with ~30 customers already "known" before April 2025, then add
+    // a handful of brand-new customers each month so the customer base grows.
+    const customerPool: { id: any; createdAt: number }[] = [];
+    const usedNames = new Set<string>();
 
-    let created = 0;
-    for (let i = 0; i < NUM_ORDERS; i++) {
-      // Pick a customer whose account already existed by this order's date
-      const orderDate = randomInt(rangeStart, rangeEnd);
-      const eligibleCustomers = customerIds.filter((c) => c.createdAt <= orderDate);
-      if (eligibleCustomers.length === 0) continue;
-      const customer = randomChoice(eligibleCustomers);
-
-      // Pick 1-2 services for this order
-      const numServices = Math.random() < 0.75 ? 1 : 2;
-      const chosen = new Set<string>();
-      while (chosen.size < numServices) {
-        chosen.add(randomChoice(serviceOptions));
-      }
-
-      const orderType: any = {};
-      const weight: any = {};
-      const pricingBreakdown: any = {};
-      let totalPrice = 0;
-
-      chosen.forEach((service) => {
-        orderType[service] = true;
-        const isSelfService = service.startsWith("selfService");
-        const qty = isSelfService ? randomInt(1, 2) : 1; // loads=1 (flat rate), sessions can be 1-2
-        weight[service] = qty;
-        const unitPrice = (prices as any)[service];
-        const lineTotal = isSelfService ? unitPrice * qty : unitPrice;
-        pricingBreakdown[`${service}Price`] = lineTotal;
-        totalPrice += lineTotal;
-      });
-
-      // Determine status: older orders are settled (completed/cancelled),
-      // very recent orders (last 3 days) can still be in progress
-      const daysAgo = (now - orderDate) / (24 * 60 * 60 * 1000);
-      let status: "pending" | "in-progress" | "ready" | "completed" | "cancelled";
-      const rand = Math.random();
-      if (daysAgo < 3) {
-        status = rand < 0.25 ? "pending" : rand < 0.5 ? "in-progress" : rand < 0.75 ? "ready" : "completed";
-      } else {
-        status = rand < 0.9 ? "completed" : "cancelled";
-      }
-
-      // Generate orderId in LND-YYYYMMDD-XXX format
-      const dateObj = new Date(orderDate);
-      const dateKey = `${dateObj.getFullYear()}${String(dateObj.getMonth() + 1).padStart(2, "0")}${String(dateObj.getDate()).padStart(2, "0")}`;
-      dailyCounters[dateKey] = (dailyCounters[dateKey] || 0) + 1;
-      const orderId = `LND-${dateKey}-${String(dailyCounters[dateKey]).padStart(3, "0")}`;
-
-      const pickupDate = orderDate + randomInt(2, 8) * 60 * 60 * 1000; // 2-8 hours later
-
-      const orderDoc: any = {
-        orderId,
-        customerId: customer.id,
-        orderType,
-        status,
-        notes: "",
-        expectedPickupDate: pickupDate,
-        createdAt: orderDate,
-        createdBy: currentUser._id,
-        updatedAt: orderDate,
-        updatedBy: currentUser._id,
-        paymentStatus: status === "completed" ? "paid" : "unpaid",
-        isDeleted: false,
-      };
-
-      // Add weight/pricing/status-specific timestamps only for orders that reached that stage
-      if (status !== "pending") {
-        orderDoc.inProgressAt = orderDate + 30 * 60 * 1000;
-      }
-      if (status === "ready" || status === "completed") {
-        orderDoc.weight = weight;
-        orderDoc.pricing = { ...pricingBreakdown, totalPrice };
-        orderDoc.readyAt = orderDate + randomInt(3, 6) * 60 * 60 * 1000;
-      }
-      if (status === "completed") {
-        orderDoc.completedAt = orderDoc.readyAt + randomInt(1, 24) * 60 * 60 * 1000;
-        orderDoc.actualPickupDate = orderDoc.completedAt;
-        orderDoc.paidAt = orderDoc.completedAt;
-      }
-      if (status === "cancelled") {
-        orderDoc.cancelledAt = orderDate + randomInt(1, 12) * 60 * 60 * 1000;
-        orderDoc.cancellationReason = "Customer request";
-      }
-
-      await ctx.db.insert("laundryOrders", orderDoc);
-      created++;
+    function makeCustomer(createdAt: number) {
+      let fullName = "";
+      do {
+        fullName = `${randomChoice(FIRST_NAMES)} ${randomChoice(LAST_NAMES)}`;
+      } while (usedNames.has(fullName));
+      usedNames.add(fullName);
+      return { fullName, createdAt };
     }
 
-    return { customersCreated: customerIds.length, ordersCreated: created };
+    // Seed an initial base of ~25 customers right at the start
+    const initialBatch = 25;
+    for (let i = 0; i < initialBatch; i++) {
+      const createdAt = new Date(startYear, startMonth, randomInt(1, 28), randomInt(8, 19), randomInt(0, 59)).getTime();
+      const { fullName } = makeCustomer(createdAt);
+      const custId = await ctx.db.insert("customers", {
+        name: fullName,
+        email: randomGmail(fullName),
+        phone: randomPhone(),
+        createdAt,
+        createdBy: currentUser._id,
+        updatedAt: createdAt,
+        isActive: true,
+      });
+      customerPool.push({ id: custId, createdAt });
+    }
+
+    let totalOrdersCreated = 0;
+    let totalCustomersCreated = initialBatch;
+    const dailyCounters: Record<string, number> = {};
+
+    // ── Step 2: Walk month by month from April 2025 to the current month ──
+    let year = startYear;
+    let month = startMonth;
+    while (year < now.getFullYear() || (year === now.getFullYear() && month <= now.getMonth())) {
+      const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const maxDay = isCurrentMonth ? now.getDate() : daysInMonth;
+
+      // 30-40 orders per month, scaled down proportionally for a partial current month
+      const fullMonthTarget = randomInt(30, 40);
+      const monthTarget = isCurrentMonth
+        ? Math.max(1, Math.round(fullMonthTarget * (maxDay / daysInMonth)))
+        : fullMonthTarget;
+
+      // Occasionally add 1-3 brand-new customers this month (customer base grows over time)
+      const newCustomersThisMonth = randomInt(1, 3);
+      for (let i = 0; i < newCustomersThisMonth; i++) {
+        const day = randomInt(1, maxDay);
+        const createdAt = randomTimeOnDay(year, month, day);
+        const { fullName } = makeCustomer(createdAt);
+        const custId = await ctx.db.insert("customers", {
+          name: fullName,
+          email: randomGmail(fullName),
+          phone: randomPhone(),
+          createdAt,
+          createdBy: currentUser._id,
+          updatedAt: createdAt,
+          isActive: true,
+        });
+        customerPool.push({ id: custId, createdAt });
+        totalCustomersCreated++;
+      }
+
+      for (let i = 0; i < monthTarget; i++) {
+        const day = randomInt(1, maxDay);
+        const orderDate = randomTimeOnDay(year, month, day);
+
+        const eligible = customerPool.filter((c) => c.createdAt <= orderDate);
+        if (eligible.length === 0) continue;
+        const customer = randomChoice(eligible);
+
+        // Always pick 1-2 real services — never an empty order
+        const numServices = Math.random() < 0.75 ? 1 : 2;
+        const chosen = new Set<string>();
+        while (chosen.size < numServices) {
+          chosen.add(randomChoice(serviceOptions));
+        }
+
+        const orderType: any = {};
+        const weight: any = {};
+        const pricingBreakdown: any = {};
+        let totalPrice = 0;
+
+        chosen.forEach((service) => {
+          orderType[service] = true;
+          const isSelfService = service.startsWith("selfService");
+          const qty = isSelfService ? randomInt(1, 2) : 1;
+          weight[service] = qty;
+          const unitPrice = (prices as any)[service];
+          const lineTotal = isSelfService ? unitPrice * qty : unitPrice;
+          pricingBreakdown[`${service}Price`] = lineTotal;
+          totalPrice += lineTotal;
+        });
+
+        const daysAgo = (now.getTime() - orderDate) / (24 * 60 * 60 * 1000);
+        let status: "pending" | "in-progress" | "ready" | "completed" | "cancelled";
+        const rand = Math.random();
+        if (daysAgo < 2) {
+          status = rand < 0.25 ? "pending" : rand < 0.5 ? "in-progress" : rand < 0.75 ? "ready" : "completed";
+        } else {
+          status = rand < 0.92 ? "completed" : "cancelled";
+        }
+
+        const dateKey = `${year}${String(month + 1).padStart(2, "0")}${String(day).padStart(2, "0")}`;
+        dailyCounters[dateKey] = (dailyCounters[dateKey] || 0) + 1;
+        const orderId = `LND-${dateKey}-${String(dailyCounters[dateKey]).padStart(3, "0")}`;
+
+        const pickupDate = orderDate + randomInt(2, 8) * 60 * 60 * 1000;
+
+        const orderDoc: any = {
+          orderId,
+          customerId: customer.id,
+          orderType,
+          status,
+          notes: "",
+          expectedPickupDate: pickupDate,
+          createdAt: orderDate,
+          createdBy: currentUser._id,
+          updatedAt: orderDate,
+          updatedBy: currentUser._id,
+          paymentStatus: status === "completed" ? "paid" : "unpaid",
+          isDeleted: false,
+        };
+
+        if (status !== "pending") {
+          orderDoc.inProgressAt = orderDate + 30 * 60 * 1000;
+        }
+        if (status === "ready" || status === "completed") {
+          orderDoc.weight = weight;
+          orderDoc.pricing = { ...pricingBreakdown, totalPrice };
+          orderDoc.readyAt = orderDate + randomInt(3, 6) * 60 * 60 * 1000;
+        }
+        if (status === "completed") {
+          orderDoc.completedAt = orderDoc.readyAt + randomInt(1, 24) * 60 * 60 * 1000;
+          orderDoc.actualPickupDate = orderDoc.completedAt;
+          orderDoc.paidAt = orderDoc.completedAt;
+        }
+        if (status === "cancelled") {
+          orderDoc.cancelledAt = orderDate + randomInt(1, 12) * 60 * 60 * 1000;
+          orderDoc.cancellationReason = "Customer request";
+        }
+
+        await ctx.db.insert("laundryOrders", orderDoc);
+        totalOrdersCreated++;
+      }
+
+      month++;
+      if (month > 11) { month = 0; year++; }
+    }
+
+    return { customersCreated: totalCustomersCreated, ordersCreated: totalOrdersCreated };
   },
 });
