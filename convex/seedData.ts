@@ -84,11 +84,16 @@ function randomGmail(fullName: string): string {
   return `${base}${suffix}@gmail.com`;
 }
 // Random timestamp for a given calendar day, constrained to 8:00 AM - 8:00 PM
+// PHILIPPINE TIME (UTC+8). Convex servers run in UTC, so we build the timestamp
+// using Date.UTC() and subtract 8 hours from the intended Manila hour — this
+// guarantees the stored epoch value displays as 8am-8pm once the browser
+// (running in Philippine time) renders it, regardless of server timezone.
 function randomTimeOnDay(year: number, month: number, day: number): number {
-  const hour = randomInt(8, 19); // 8am to 7:59pm start, ensures end time stays <= 8pm
+  const manilaHour = randomInt(8, 19); // 8am to 7:59pm Manila time
   const minute = randomInt(0, 59);
   const second = randomInt(0, 59);
-  return new Date(year, month, day, hour, minute, second).getTime();
+  const utcHour = manilaHour - 8; // convert Manila hour to equivalent UTC hour
+  return Date.UTC(year, month, day, utcHour, minute, second);
 }
 
 export const seedHistoricalOrders = mutation({
@@ -132,7 +137,7 @@ export const seedHistoricalOrders = mutation({
     // Seed an initial base of ~25 customers right at the start
     const initialBatch = 25;
     for (let i = 0; i < initialBatch; i++) {
-      const createdAt = new Date(startYear, startMonth, randomInt(1, 28), randomInt(8, 19), randomInt(0, 59)).getTime();
+      const createdAt = randomTimeOnDay(startYear, startMonth, randomInt(1, 28));
       const { fullName } = makeCustomer(createdAt);
       const custId = await ctx.db.insert("customers", {
         name: fullName,
