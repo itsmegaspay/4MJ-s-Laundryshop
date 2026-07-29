@@ -391,9 +391,9 @@ export default function AdminDashboard() {
               const compRate = insights.completionRate || 0;
               const compSeverity = compRate >= 80 ? "green" : compRate >= 50 ? "orange" : "red";
               const revGrowth = insights.revenueGrowth || 0;
-              const revSeverity = revGrowth >= 10 ? "green" : revGrowth >= 0 ? "orange" : "red";
+              const revSeverity = revGrowth > 0 ? "green" : revGrowth === 0 ? "orange" : "red";
               const ordGrowth = ordersGrowth || 0;
-              const ordSeverity = ordGrowth >= 10 ? "green" : ordGrowth >= 0 ? "orange" : "red";
+              const ordSeverity = ordGrowth > 0 ? "green" : ordGrowth === 0 ? "orange" : "red";
 
               const cc: Record<string, { bg: string; border: string; text: string; sub: string; label: string }> = {
                 green: {
@@ -439,7 +439,7 @@ export default function AdminDashboard() {
                     <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${cc[revSeverity].label}`}>{icon[revSeverity]} Projected Revenue</p>
                     <p className={`text-2xl font-bold ${cc[revSeverity].text}`}>₱{(insights.forecastRevenue||0).toLocaleString()}</p>
                     <p className={`text-xs mt-1 ${cc[revSeverity].sub}`}>
-                      Trend: {revGrowth>=0?"+":""}{revGrowth}% {revSeverity === "orange" ? "(slightly growing)" : revSeverity === "red" ? "(declining)" : "(strong growth)"}
+                      Trend: {revGrowth>=0?"+":""}{revGrowth}% {revSeverity === "orange" ? "(no change)" : revSeverity === "red" ? "(declining)" : "(growing)"}
                     </p>
                   </div>
                   {/* Busiest Day - operational heads-up */}
@@ -453,15 +453,15 @@ export default function AdminDashboard() {
                     <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${cc[ordSeverity].label}`}>{icon[ordSeverity]} Projected Services</p>
                     <p className={`text-2xl font-bold ${cc[ordSeverity].text}`}>{insights.forecastOrders||0}</p>
                     <p className={`text-xs mt-1 ${cc[ordSeverity].sub}`}>
-                      Avg ₱{(insights.avgOrderValue||0).toLocaleString()} per service {ordSeverity === "orange" ? "(slightly growing)" : ordSeverity === "red" ? "(declining)" : "(strong growth)"}
+                      Avg ₱{(insights.avgOrderValue||0).toLocaleString()} per service {ordSeverity === "orange" ? "(no change)" : ordSeverity === "red" ? "(declining)" : "(growing)"}
                     </p>
                   </div>
                   {/* Revenue Growing/Declining */}
                   <div className={`${cc[revSeverity].bg} rounded-lg border ${cc[revSeverity].border} p-5`}>
-                    <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${cc[revSeverity].label}`}>{revSeverity === "red" ? "🔴 Revenue Declining" : revSeverity === "orange" ? "⚠️ Revenue Slightly Growing" : "✅ Revenue Growing"}</p>
+                    <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${cc[revSeverity].label}`}>{revSeverity === "red" ? "🔴 Revenue Declining" : revSeverity === "orange" ? "⚠️ Revenue Flat" : "✅ Revenue Growing"}</p>
                     <p className={`text-2xl font-bold ${cc[revSeverity].text}`}>{revGrowth>=0?"+":""}{revGrowth}%</p>
                     <p className={`text-xs mt-1 ${cc[revSeverity].sub}`}>
-                      {revSeverity === "red" ? "Action needed to recover revenue" : revSeverity === "orange" ? "Growing slightly — keep pushing for more" : "Keep up the great work!"}
+                      {revSeverity === "red" ? "Action needed to recover revenue" : revSeverity === "orange" ? "No change from last period — try a promotion to spark growth" : "Keep up the great work!"}
                     </p>
                   </div>
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-700/30 rounded-lg border border-slate-200 dark:border-slate-600 p-5">
