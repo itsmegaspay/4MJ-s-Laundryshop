@@ -75,6 +75,9 @@ const FIRST_NAMES = [
   "Susan", "Edgar", "Fe", "Melvin", "Gina", "Alvin", "Rowena",
   "Larry", "Melody", "Sonny", "Emily", "Wilfredo", "Norma", "Jayson",
   "Liza", "Ramil", "Perla", "Dexter", "Amalia", "Herbert", "Lorna",
+  // Igorot / Cordilleran given names (commonly used in Baguio & the Cordillera region)
+  "Bugan", "Kabigat", "Wasay", "Dawnay", "Sinag", "Banag", "Cayat",
+  "Ap-ap", "Malinao", "Dulnuan", "Alma", "Bantasan", "Insang", "Onwas",
 ];
 const LAST_NAMES = [
   "Santos", "Reyes", "Cruz", "Bautista", "Gonzales", "Ramos", "Flores",
@@ -83,6 +86,12 @@ const LAST_NAMES = [
   "Fernandez", "Diaz", "Navarro", "Ocampo", "Valdez", "Aguilar", "Manalo",
   "Ignacio", "Roque", "Soriano", "Pangilinan", "Del Rosario", "Fajardo",
   "Lazaro", "Macaraeg", "Panganiban", "Tan", "Sy", "Uy", "Lim",
+  // Igorot / Cordilleran surnames (Ibaloi, Kankanaey, Ifugao, Kalinga, Bontoc communities)
+  "Bahni", "Baguilat", "Bugtong", "Camdas", "Chalapan", "Dangwa", "Dulawan",
+  "Fagyan", "Fianza", "Ganggangan", "Kimakim", "Longid", "Molintas",
+  "Pekas", "Piluden", "Sagandoy", "Tayaban", "Tuguinay", "Wasing",
+  "Cariño", "Bomagao", "Sudiacal", "Odsey", "Waclin", "Guilaran",
+  "Ambalong", "Bugnosen", "Aliten", "Camsol",
 ];
 
 function randomChoice<T>(arr: readonly T[]): T {
