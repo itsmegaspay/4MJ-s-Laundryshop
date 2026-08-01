@@ -24,6 +24,7 @@ export default defineSchema({
     createdBy: v.id("users"),
     updatedAt: v.number(),
     isActive: v.boolean(),
+    isSeedData: v.optional(v.boolean()), // marks records created by the seeding script, for reliable cleanup
   })
     .index("by_email", ["email"])
     .index("by_phone", ["phone"])
@@ -118,6 +119,7 @@ export default defineSchema({
     isDeleted: v.boolean(),
     deletedAt: v.optional(v.number()),
     deletedBy: v.optional(v.id("users")),
+    isSeedData: v.optional(v.boolean()), // marks records created by the seeding script, for reliable cleanup
   })
     .index("by_customer", ["customerId"])
     .index("by_order_id", ["orderId"])

@@ -15,16 +15,22 @@ async function getSeedAdminUser(ctx: any) {
 }
 
 // ── STEP 0: Remove any data created by a previous run of this seed script ──
-// (identified by the "@example.com" placeholder email domain used before).
+// Matches records tagged isSeedData:true (reliable, going forward), AND falls
+// back to the old "@example.com" placeholder domain for older seed batches
+// that predate the isSeedData flag.
 export const clearPreviousSeedData = mutation({
   args: {},
   handler: async (ctx) => {
     const allCustomers = await ctx.db.query("customers").collect();
-    const seedCustomers = allCustomers.filter((c) => c.email?.endsWith("@example.com"));
+    const seedCustomers = allCustomers.filter(
+      (c) => c.isSeedData === true || c.email?.endsWith("@example.com")
+    );
     const seedCustomerIds = new Set(seedCustomers.map((c) => c._id));
 
     const allOrders = await ctx.db.query("laundryOrders").collect();
-    const seedOrders = allOrders.filter((o) => seedCustomerIds.has(o.customerId));
+    const seedOrders = allOrders.filter(
+      (o) => o.isSeedData === true || seedCustomerIds.has(o.customerId)
+    );
 
     for (const o of seedOrders) {
       await ctx.db.delete(o._id);
@@ -34,6 +40,26 @@ export const clearPreviousSeedData = mutation({
     }
 
     return { customersRemoved: seedCustomers.length, ordersRemoved: seedOrders.length };
+  },
+});
+
+// ── EMERGENCY RESET: wipes ALL customers and orders unconditionally ──
+// Use this ONCE if duplicate seed batches have piled up and clearPreviousSeedData
+// can no longer tell them apart from real data (e.g. because older batches were
+// created before the isSeedData tag existed). This deletes EVERYTHING in both
+// tables — only run this if you're intentionally starting completely fresh.
+export const resetAllOrdersAndCustomers = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const allOrders = await ctx.db.query("laundryOrders").collect();
+    for (const o of allOrders) {
+      await ctx.db.delete(o._id);
+    }
+    const allCustomers = await ctx.db.query("customers").collect();
+    for (const c of allCustomers) {
+      await ctx.db.delete(c._id);
+    }
+    return { customersRemoved: allCustomers.length, ordersRemoved: allOrders.length };
   },
 });
 
@@ -147,6 +173,7 @@ export const seedHistoricalOrders = mutation({
         createdBy: currentUser._id,
         updatedAt: createdAt,
         isActive: true,
+        isSeedData: true,
       });
       customerPool.push({ id: custId, createdAt });
     }
@@ -183,6 +210,7 @@ export const seedHistoricalOrders = mutation({
           createdBy: currentUser._id,
           updatedAt: createdAt,
           isActive: true,
+          isSeedData: true,
         });
         customerPool.push({ id: custId, createdAt });
         totalCustomersCreated++;
@@ -247,6 +275,7 @@ export const seedHistoricalOrders = mutation({
           updatedBy: currentUser._id,
           paymentStatus: status === "completed" ? "paid" : "unpaid",
           isDeleted: false,
+          isSeedData: true,
         };
 
         if (status !== "pending") {
