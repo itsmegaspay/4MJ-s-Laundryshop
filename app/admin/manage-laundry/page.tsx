@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 // admin
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -1039,6 +1039,31 @@ function CreateOrderModal({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const customerFieldRef = useRef<HTMLDivElement>(null);
+
+  const selectedCustomer = customers.find((c) => c._id === formData.customerId);
+  const filteredCustomers = customerSearch.trim() === ""
+    ? customers
+    : customers.filter((c) => {
+        const q = customerSearch.toLowerCase();
+        return (
+          (c.name || "").toLowerCase().includes(q) ||
+          (c.email || "").toLowerCase().includes(q) ||
+          (c.phone || "").toLowerCase().includes(q)
+        );
+      });
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (customerFieldRef.current && !customerFieldRef.current.contains(e.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     email: "",
@@ -1239,19 +1264,48 @@ function CreateOrderModal({
                   + Add New Customer
                 </button>
               </div>
-              <select
-                required
-                value={formData.customerId}
-                onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-              >
-                <option value="">Select a customer</option>
-                {customers.map((customer) => (
-                  <option key={customer._id} value={customer._id}>
-                    {formatName(customer.name)} - {customer.email}
-                  </option>
-                ))}
-              </select>
+              <div className="relative" ref={customerFieldRef}>
+                <input
+                  type="text"
+                  placeholder="Type a name, email, or phone to search..."
+                  value={showCustomerDropdown ? customerSearch : (selectedCustomer ? `${formatName(selectedCustomer.name)} - ${selectedCustomer.email}` : "")}
+                  onChange={(e) => {
+                    setCustomerSearch(e.target.value);
+                    setShowCustomerDropdown(true);
+                    if (formData.customerId) setFormData({ ...formData, customerId: "" });
+                  }}
+                  onFocus={() => {
+                    setCustomerSearch("");
+                    setShowCustomerDropdown(true);
+                  }}
+                  required={!formData.customerId}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                />
+                {showCustomerDropdown && (
+                  <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-lg">
+                    {filteredCustomers.length === 0 ? (
+                      <p className="px-3 py-2 text-sm text-slate-500">No customers found</p>
+                    ) : (
+                      filteredCustomers.map((customer) => (
+                        <button
+                          type="button"
+                          key={customer._id}
+                          onClick={() => {
+                            setFormData({ ...formData, customerId: customer._id });
+                            setCustomerSearch("");
+                            setShowCustomerDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/30 ${
+                            formData.customerId === customer._id ? "bg-blue-100 dark:bg-blue-900/40" : ""
+                          }`}
+                        >
+                          {formatName(customer.name)} - {customer.email}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Service Type */}
