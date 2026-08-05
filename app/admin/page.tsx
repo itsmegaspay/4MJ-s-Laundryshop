@@ -853,7 +853,7 @@ function ImprovedLineChart({
   color: string;
   formatValue?: (value: number) => string;
 }) {
-  if ((!data || data.length === 0) && realtimeOrders.length === 0) {
+  if (!data || data.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center">
         <div className="text-center">
