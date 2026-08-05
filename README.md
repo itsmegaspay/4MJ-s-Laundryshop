@@ -1,11 +1,8 @@
-<<<<<<< HEAD
-# 4MJ-s-Laundryshop
-=======
 # 🧺 4MJ's Laundry Management System
 
 4MJ's Laundry is a **full-stack laundry management system** with **real-time business intelligence** and **automated decision support**. Built for small business operations, it demonstrates how emerging technologies like serverless architecture and predictive analytics can bring enterprise-level capabilities to SME operations.
 
-**Key Innovation:** Real-time data-driven monitoring with automated alerting system that transforms reactive business management into proactive operations.
+**Key Innovation:** Real-time data-driven monitoring with an automated alerting system that transforms reactive business management into proactive operations.
 
 ---
 
@@ -19,22 +16,36 @@
 
 ### 🧾 Laundry Management
 
-* Create, update, and manage **laundry jobs**
-* Laundry lifecycle tracking (Pending, In Progress, Completed, Paid)
-* Pricing, payment status, and pickup scheduling per laundry job
-* Unique tracking IDs assigned to each laundry job
+* Create, update, and manage **laundry jobs** for Full Service / Drop Off (Regular Clothes, Assorted Color Clothes, Towels & Blankets, Comforters) and Self-Service (Wash, Spinning, Dry) offerings
+* **Searchable customer picker** when creating a laundry job — type a name, email, or phone number to filter and select the customer instead of scrolling a long list
+* Laundry lifecycle tracking (Pending, In Progress, Ready, Completed) with separate payment status tracking
+* Configurable pricing per service type (admin **Set Price** page, backed by `pricingConfig.ts`)
+* Pickup date/time scheduling per laundry job, with same-day/future-date validation
+* Unique tracking IDs (e.g. `LND-YYYYMMDD-XXXX`) auto-generated for each laundry job
+
+### 💧 Water Drum / Resource Monitoring
+
+* Tracks estimated water usage per service type against available drum capacity
+* Warns staff before creating a service that would exceed remaining water supply
+* Drum refill tracking so usage resets after a refill is logged
 
 ### 📦 Customer Laundry Tracking
 
-* Public laundry tracking page using a Tracking ID
+* Public laundry tracking page (`/track`) using a Tracking ID
 * Real-time laundry status updates
 * No customer login required
+
+### 👥 Customer Management
+
+* Add, search, and manage customer records (name, email, phone, notes)
+* Duplicate-protection on email and phone number
+* Guards against saving non-routable/placeholder email domains (e.g. `example.com`, `test.com`) so every customer record on file can actually receive email
 
 ### 📊 Admin & Staff Dashboard
 
 * Centralized dashboard for daily laundry operations
-* View and manage all active and completed laundry jobs
-* Staff-controlled laundry status updates
+* View and manage all active and completed laundry jobs, with search, filtering, sorting, and pagination
+* Staff-controlled laundry status and payment updates
 * Operational visibility for admins and shop owners
 
 ### 📈 Analytics & Reporting
@@ -58,7 +69,15 @@
 * Automatic alert resolution when conditions normalize
 * Alert expiration and cleanup to prevent stale alerts
 * Dismissible alerts with one-click resolution
-* Email notifications delivered via **Nodemailer (Gmail SMTP)**
+* Background monitoring via Convex **scheduled cron jobs** (`convex/crons.ts`)
+
+### 📧 Customer & System Emails
+
+* Order-confirmation and "ready for pickup" emails sent to the **customer's own email address** on file (not the shop's inbox), delivered via **Nodemailer (Gmail SMTP)**
+* Welcome emails with temporary credentials for newly created staff/admin accounts
+* Automatic retry (up to 3 attempts) on transient SMTP failures
+* A service is always saved first, then the confirmation email is attempted — so a slow or failed email never blocks or loses a customer's order
+* Built-in seed-data cleanup (`seedData.ts`) to remove demo customers/orders (identified by their `@example.com` placeholder emails) before going live
 
 ### 📝 Audit Logging & Activity Tracking
 
@@ -86,10 +105,10 @@ This project's core emerging technology is a **real-time business intelligence s
 **Predictive Analytics (Not Just Historical):**
 - Detects patterns and anomalies automatically
 - Anticipates problems before they escalate
-- Provides early warning system for business issues
+- Provides an early warning system for business issues
 
 **Automated Decision Support (Not Manual Analysis):**
-- System actively monitors 6+ business metrics continuously
+- System actively monitors multiple business metrics continuously
 - Generates intelligent alerts without human intervention
 - Self-resolves when conditions normalize
 
@@ -117,9 +136,9 @@ Alert Types Implemented:
 - Period-over-period comparisons (today vs yesterday, week vs previous week)
 
 **Smart Alert Lifecycle:**
-- **Creation:** Automatic when thresholds exceeded
+- **Creation:** Automatic when thresholds are exceeded
 - **Classification:** Severity levels (Info, Warning, Critical)
-- **Notification:** Multi-channel delivery (in-app + email)
+- **Notification:** In-app alerts, resolved automatically as data changes
 - **Resolution:** Auto-resolves when conditions improve
 - **Expiration:** Prevents stale alerts (24-72 hour TTL)
 
@@ -152,13 +171,7 @@ This rule-based system provides the foundation for:
 
 **Proactive vs Reactive Management:**
 - **Before:** Owner checks reports weekly, discovers problems after they occur
-- **After:** System alerts owner immediately, prevents issues from escalating
-
-**Measurable Benefits:**
-- 80% reduction in manual tracking time
-- Prevention of revenue loss through early detection
-- Data-driven optimization decisions
-- Operational efficiency improvements
+- **After:** System alerts the owner immediately, preventing issues from escalating
 
 **Democratization of Enterprise Tech:**
 - Features previously only in expensive enterprise software
@@ -179,16 +192,10 @@ The real-time analytics capabilities are enabled by modern **Backend-as-a-Servic
 - **Event-Driven:** React to data changes automatically
 
 **Why This Matters:**
-- Represents shift from traditional monolithic backends to distributed cloud services
+- Represents a shift from traditional monolithic backends to distributed cloud services
 - Enables rapid development without sacrificing scalability
 - Zero infrastructure management overhead
 - Modern alternative to REST APIs and manual database management
-
-**Development Advantages:**
-- Instant deployment (no server provisioning)
-- Automatic scaling (handles traffic spikes)
-- Built-in real-time capabilities (WebSocket under the hood)
-- Type safety reduces runtime errors by ~70%
 
 ---
 
@@ -198,7 +205,6 @@ The real-time analytics capabilities are enabled by modern **Backend-as-a-Servic
 - Logs all CRUD operations on critical entities
 - User attribution (who performed each action)
 - Precise timestamps for forensic analysis
-- Immutable records (cannot be modified/deleted)
 
 **Benefits:**
 - Accountability and transparency
@@ -212,10 +218,10 @@ The real-time analytics capabilities are enabled by modern **Backend-as-a-Servic
 
 ### Frontend
 
-* **Next.js 14 (App Router)** - Modern React framework with server components
-* **React 18** - Latest React features and concurrent rendering
+* **Next.js 16 (App Router, Turbopack)** - Modern React framework with server components
+* **React 19** - Latest React features and concurrent rendering
 * **TypeScript** - Type safety and enhanced developer experience
-* **Tailwind CSS** - Utility-first CSS framework
+* **Tailwind CSS 4** - Utility-first CSS framework
 * **shadcn/ui** - High-quality, accessible UI components
 * **Recharts** - Powerful charting library for data visualization
 * **lucide-react** - Modern icon library
@@ -225,15 +231,14 @@ The real-time analytics capabilities are enabled by modern **Backend-as-a-Servic
 
 * **Convex** - Backend-as-a-Service with real-time database
 * **Convex Auth** - Secure authentication and session management
-* **Node.js Actions** - Serverless functions for business logic
-* **Scheduled Jobs** - Automated cron-like tasks for alerts
+* **Scheduled Jobs (Cron)** - Automated background tasks for alerts and monitoring
 * **Type-safe API** - Full TypeScript coverage from database to UI
 
 ### Email Service
 
 * **Nodemailer** - Email sending library
-* **Gmail SMTP** - Reliable email delivery
-* **HTML Email Templates** - Professional notification formatting
+* **Gmail SMTP** - Email delivery, with automatic retry on transient failures
+* **HTML Email Templates** - Professional notification formatting for order confirmation, ready-for-pickup, and welcome emails
 
 ### Development Tools
 
@@ -252,34 +257,47 @@ The real-time analytics capabilities are enabled by modern **Backend-as-a-Servic
 ## 📁 Project Structure
 
 ```
-4mjslaundry/
-├── app/                      # Next.js App Router
-│   ├── (auth)/              # Authentication routes
-│   ├── admin/               # Admin dashboard
-│   ├── staff/               # Staff dashboard
-│   ├── track/               # Public tracking page
-│   └── layout.tsx           # Root layout
-├── components/              # Reusable UI components
-│   ├── ui/                  # shadcn/ui components
-│   ├── AdminSidebar.tsx     # Admin navigation
-│   └── ...                  # Other components
-├── convex/                  # Convex backend
-│   ├── schema.ts            # Database schema
-│   ├── analytics.ts         # Analytics queries
-│   ├── alertSystem.ts       # Alert engine
-│   ├── auditLog.ts          # Audit logging
-│   ├── laundryOrders.ts     # Order management
-│   ├── customers.ts         # Customer operations
-│   └── users.ts             # User management
-├── hooks/                   # Custom React hooks
-├── lib/                     # Utilities and helpers
-├── public/                  # Static assets
-├── .env.local              # Environment variables (not committed)
-├── .env.example            # Environment template
-├── package.json            # Dependencies
-├── tsconfig.json           # TypeScript configuration
-├── tailwind.config.ts      # Tailwind configuration
-└── README.md               # This file
+4MJ-s-Laundryshop/
+├── app/                          # Next.js App Router
+│   ├── admin/                    # Admin-only pages
+│   │   ├── manage-laundry/       # Create/view/update laundry jobs
+│   │   ├── manage-customers/     # Customer records
+│   │   ├── manage-users/         # Staff/admin accounts
+│   │   ├── set-price/            # Service pricing configuration
+│   │   ├── analytics-report/     # Business intelligence dashboard
+│   │   └── audit-log/            # Activity/audit trail
+│   ├── staff/                    # Staff pages (subset of admin features)
+│   ├── api/                      # Email API routes (order/ready/test emails)
+│   ├── track/                    # Public tracking page (no login required)
+│   ├── signin/                   # Sign-in page
+│   ├── dashboard/                # Post-login role redirect
+│   └── layout.tsx                # Root layout
+├── components/                   # Reusable UI components
+│   ├── ui/                       # shadcn/ui components
+│   ├── Adminsidebar.tsx          # Admin navigation
+│   ├── Staffsidebar.tsx          # Staff navigation
+│   └── ConvexClientProvider.tsx  # Convex client/auth provider
+├── convex/                       # Convex backend
+│   ├── schema.ts                 # Database schema
+│   ├── analytics.ts              # Analytics queries
+│   ├── alertSystem.ts            # Alert engine
+│   ├── auditLogs.ts              # Audit logging
+│   ├── laundryOrders.ts          # Order mutations
+│   ├── laundryOrdersQueries.ts   # Order queries
+│   ├── customers.ts              # Customer operations
+│   ├── users.ts                  # User management
+│   ├── pricingConfig.ts          # Service pricing
+│   ├── waterTank.ts              # Water drum/resource tracking
+│   ├── crons.ts                  # Scheduled background jobs
+│   └── seedData.ts               # Demo data generator + cleanup
+├── hooks/                        # Custom React hooks
+├── lib/                          # Utilities (email.ts, utils.ts)
+├── public/                       # Static assets
+├── .env.local                    # Environment variables (not committed)
+├── .env.example                  # Environment template
+├── package.json                  # Dependencies
+├── tsconfig.json                 # TypeScript configuration
+└── README.md                     # This file
 ```
 
 ---
@@ -289,7 +307,7 @@ The real-time analytics capabilities are enabled by modern **Backend-as-a-Servic
 ### Prerequisites
 
 * **Node.js** 18.x or higher
-* **npm** or **yarn**
+* **npm**
 * **Git**
 * **Convex Account** (free tier available)
 * **Gmail Account** (for email notifications)
@@ -310,13 +328,13 @@ npm install
 ### 3️⃣ Set up Convex
 
 ```bash
-# Login to Convex (creates account if needed)
+# Login to Convex (creates account if needed) and start the backend
 npx convex dev
 
 # This will:
-# - Create a new Convex project
-# - Generate schema
-# - Start local development server
+# - Create a new Convex project (or link an existing one)
+# - Generate/sync the schema
+# - Start the local development backend
 ```
 
 ### 4️⃣ Environment variables
@@ -324,19 +342,17 @@ npx convex dev
 Create a `.env.local` file based on `.env.example`:
 
 ```env
-# App Configuration
+# DB — used in Production/Preview deploys of your Convex project
+CONVEX_DEPLOYMENT=
+NEXT_PUBLIC_CONVEX_URL=
+SETUP_SCRIPT_RAN=
+
+# Gmail SMTP settings for sending emails
+GMAIL_USER=yourgmail@gmail.com
+GMAIL_APP_PASSWORD=your-16-character-app-password
+
+# Public app URL (used to build links inside emails, e.g. the tracking link)
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-CONVEX_DEPLOYMENT=your-convex-deployment-id
-
-# Convex Auth
-CONVEX_SITE_URL=http://localhost:3000
-
-# Email Configuration (Nodemailer with Gmail)
-EMAIL_USER=yourgmail@gmail.com
-EMAIL_PASS=your-app-password
-
-# Admin Email (receives system alerts)
-ADMIN_EMAIL=admin@yourbusiness.com
 ```
 
 #### 📧 Setting up Gmail SMTP
@@ -347,7 +363,7 @@ ADMIN_EMAIL=admin@yourbusiness.com
    - Google Account → Security → 2-Step Verification → App passwords
    - Select "Mail" and "Other (Custom name)"
    - Copy the 16-character password
-4. Use this App Password in `EMAIL_PASS` (not your regular password)
+4. Use this App Password in `GMAIL_APP_PASSWORD` (not your regular Gmail password)
 
 > ⚠️ **Security:** Never commit `.env.local` to version control
 
@@ -368,10 +384,21 @@ http://localhost:3000
 
 ### 6️⃣ Create your first admin user
 
-1. Visit `http://localhost:3000/signup`
-2. Create an account
-3. In Convex Dashboard, manually set the user's role to "admin"
-4. Log out and log back in
+1. Visit `http://localhost:3000/signin` and create an account
+2. In the Convex Dashboard, manually set that user's `role` field to `"admin"`
+3. Log out and log back in
+
+### 7️⃣ (Optional) Load demo data
+
+```bash
+npx convex run seedData:seedHistoricalOrders
+```
+
+Demo customers are created with `@example.com` placeholder emails, which **cannot receive real mail** — this is intentional so demo orders can't accidentally spam a real inbox. Before going live, remove them:
+
+```bash
+npx convex run seedData:clearPreviousSeedData
+```
 
 ---
 
@@ -382,7 +409,7 @@ http://localhost:3000
 1. **Push to GitHub**
    ```bash
    git add .
-   git commit -m "Initial commit"
+   git commit -m "Your commit message"
    git push origin main
    ```
 
@@ -393,12 +420,11 @@ http://localhost:3000
 
 3. **Set Environment Variables**
    ```
-   NEXT_PUBLIC_APP_URL=https://your-app-name.vercel.app
    CONVEX_DEPLOYMENT=your-convex-deployment-id
-   CONVEX_SITE_URL=https://your-app-name.vercel.app
-   EMAIL_USER=yourgmail@gmail.com
-   EMAIL_PASS=your-app-password
-   ADMIN_EMAIL=admin@yourbusiness.com
+   NEXT_PUBLIC_CONVEX_URL=https://your-project.convex.cloud
+   GMAIL_USER=yourgmail@gmail.com
+   GMAIL_APP_PASSWORD=your-app-password
+   NEXT_PUBLIC_APP_URL=https://your-app-name.vercel.app
    ```
 
 4. **Deploy Convex to Production**
@@ -407,18 +433,19 @@ http://localhost:3000
    ```
 
 5. **Update Convex Deployment ID**
-   - Copy production deployment ID from Convex dashboard
-   - Update `CONVEX_DEPLOYMENT` in Vercel environment variables
+   - Copy the production deployment ID from the Convex dashboard
+   - Update `CONVEX_DEPLOYMENT` / `NEXT_PUBLIC_CONVEX_URL` in Vercel's environment variables
    - Redeploy in Vercel
 
 ### Post-Deployment Checklist
 
 - [ ] Test authentication flow
-- [ ] Verify email notifications work
+- [ ] Verify order-confirmation and ready-for-pickup emails actually reach a real customer inbox
+- [ ] Run `seedData:clearPreviousSeedData` to remove demo customers/orders before real use
 - [ ] Check analytics dashboard loads
 - [ ] Test alert system triggers
 - [ ] Confirm role-based access works
-- [ ] Test customer tracking page
+- [ ] Test the public customer tracking page
 - [ ] Monitor Convex logs for errors
 
 ---
@@ -437,17 +464,17 @@ http://localhost:3000
 - ✅ Gmail App Passwords (not regular passwords)
 - ✅ HTTPS encryption in production (via Vercel)
 - ✅ Input validation on all forms
+- ✅ Server-side rejection of placeholder/non-routable customer email domains
 - ✅ SQL injection prevention (Convex handles this)
 
 ### Email Security
 - ✅ SMTP over TLS
 - ✅ App-specific passwords
-- ✅ Rate limiting on email sends (prevents spam)
-- ✅ Email content sanitization
+- ✅ Automatic retry with backoff on transient send failures
+- ✅ Emails always go to the customer's own address, never a shared/admin inbox
 
 ### Audit & Compliance
 - ✅ Complete activity logging
-- ✅ Immutable audit trails
 - ✅ User action attribution
 - ✅ Timestamp tracking for all operations
 
@@ -484,6 +511,10 @@ The dashboard tracks these critical business metrics:
    - Revenue per order
    - Service type distribution
 
+5. **Resource Metrics**
+   - Water usage vs. drum capacity
+   - Remaining drums since last refill
+
 ### Alert Thresholds
 
 The system monitors these conditions:
@@ -503,7 +534,7 @@ The system monitors these conditions:
 
 ### Potential Improvements
 - SMS/Push notifications for instant alerts
-- Customer portal with self-service tracking
+- Customer portal with self-service tracking and order history
 - Inventory management for supplies
 - Employee scheduling system
 - Multi-location support
@@ -524,7 +555,7 @@ The system monitors these conditions:
 
 For questions or issues:
 - Check existing GitHub Issues
-- Create a new Issue with detailed description
+- Create a new Issue with a detailed description
 - For security concerns, email directly (do not post publicly)
 
 ---
@@ -537,11 +568,9 @@ For **educational and demonstration purposes only**.
 
 ## 📌 Project Status
 
-**Version:** 1.0.0  
-**Status:** ✅ Production Ready  
-**Last Updated:** January 2025
+**Status:** ✅ Active development
+**Last Updated:** August 2026
 
 ---
 
-**Built for Capstone Project 2025**
->>>>>>> 14a0bcb (Initial commit - 4MJ's Laundry)
+**Built for Capstone Project**
