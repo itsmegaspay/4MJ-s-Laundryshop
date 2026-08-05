@@ -53,6 +53,25 @@ function fullDayName(shortDay: string): string {
   return DAY_NAME_MAP[shortDay] || shortDay;
 }
 
+
+function PhilippinePesoIcon({ className = "", size = 20 }: { className?: string; size?: number }) {
+  return (
+    <span
+      className={className}
+      style={{
+        fontSize: size,
+        fontWeight: 700,
+        lineHeight: 1,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      ₱
+    </span>
+  );
+}
+
 export default function AnalyticsReportPage() {
   const user = useQuery(api.users.getCurrentUser);
   const router = useRouter();
@@ -476,7 +495,7 @@ export default function AnalyticsReportPage() {
                   previous={previousRevenue}
                   change={revenueChange}
                   format="currency"
-                  icon={DollarSign}
+                  icon={PhilippinePesoIcon}
                   hasPreviousData={previousOrders > 0}
                 />
                 <ComparisonCard
@@ -590,7 +609,7 @@ export default function AnalyticsReportPage() {
             {/* Revenue Analysis */}
             <div className="mb-6">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                <DollarSign size={20} className="text-green-600" />
+                <PhilippinePesoIcon size={20} className="text-green-600" />
                 Revenue Analysis
               </h2>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

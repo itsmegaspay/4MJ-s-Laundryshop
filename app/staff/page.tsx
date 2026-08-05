@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ClipboardList, Package, Clock, CheckCircle, Users, DollarSign, Loader2 } from 'lucide-react';
+import { ClipboardList, Package, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import { useEffect } from "react";
 import StaffSidebar from "@/components/Staffsidebar";
 
@@ -48,10 +48,6 @@ export default function StaffDashboard() {
   // Get recent services (last 5)
   const recentOrders = allOrders?.slice(0, 5) || [];
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return `₱${amount.toFixed(2)}`;
-  };
 
   const formatTimestamp = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -183,49 +179,6 @@ export default function StaffDashboard() {
                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
                       {orderStats.ready > 0 ? 'Awaiting pickup' : 'None ready'}
                     </p>
-                  </div>
-                </div>
-
-                {/* Additional Stats Row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                  {/* Total Revenue (Paid) */}
-                  <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Revenue</h3>
-                      <DollarSign className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-                    </div>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {formatCurrency(orderStats.totalRevenue)}
-                    </p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-                      {orderStats.paid} paid laundry
-                    </p>
-                  </div>
-
-                  {/* Pending Revenue (Unpaid) */}
-                  <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Pending Revenue</h3>
-                      <DollarSign className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-                    </div>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {formatCurrency(orderStats.pendingRevenue)}
-                    </p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-                      {orderStats.unpaid} unpaid laundry
-                    </p>
-                  </div>
-
-                  {/* Completed This Period */}
-                  <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Completed</h3>
-                      <CheckCircle className="w-5 h-5 text-slate-400 dark:text-slate-500" />
-                    </div>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                      {orderStats.completed}
-                    </p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">All time</p>
                   </div>
                 </div>
 

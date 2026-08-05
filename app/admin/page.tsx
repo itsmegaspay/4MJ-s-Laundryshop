@@ -20,8 +20,8 @@ import {
   X,
 } from "lucide-react";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,6 +30,25 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+
+
+function PhilippinePesoIcon({ className = "", size = 20 }: { className?: string; size?: number }) {
+  return (
+    <span
+      className={className}
+      style={{
+        fontSize: size,
+        fontWeight: 700,
+        lineHeight: 1,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      ₱
+    </span>
+  );
+}
 
 export default function AdminDashboard() {
   const user = useQuery(api.users.getCurrentUser);
@@ -218,7 +237,7 @@ export default function AdminDashboard() {
                 title="Total Revenue"
                 value={`₱${totalRevenue.toLocaleString()}`}
                 change={revenueGrowth}
-                icon={DollarSign}
+                icon={PhilippinePesoIcon}
                 iconColor="text-green-600 dark:text-green-400"
                 iconBg="bg-green-100 dark:bg-green-950/30"
               />
@@ -618,7 +637,11 @@ export default function AdminDashboard() {
                     {timeRange === "all" ? "Monthly" : timeRange === "today" ? "Hourly" : "Daily"}
                   </span>
                 </div>
-                <ImprovedBarChart data={ordersByDay} color="#3b82f6" />
+                <ImprovedLaundryLineChart
+                  data={ordersByDay}
+                  color="#3b82f6"
+                  timeRange={timeRange}
+                />
               </div>
             </div>
 
@@ -795,150 +818,35 @@ const LineChartTooltip = ({ active, payload, formatValue }: any) => {
   return null;
 };
 
-const BarChartTooltip = ({ active, payload }: any) => {
+const LaundryLineChartTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const value = payload[0].value;
+    const point = payload[0].payload;
+
     return (
       <div className="bg-slate-900 dark:bg-slate-800 text-white px-3 py-2 rounded-lg shadow-xl border border-slate-700">
-        <p className="font-bold text-sm">{value} {value === 1 ? 'order' : 'orders'}</p>
-        <p className="text-xs text-slate-300 mt-1">{payload[0].payload.date}</p>
+        <p className="font-bold text-sm">
+          {value} {value === 1 ? "service" : "services"}
+        </p>
+        <p className="text-xs text-slate-300 mt-1">
+          {point.fullDate || point.date || `Day ${point.day}`}
+        </p>
       </div>
     );
   }
+
   return null;
 };
 
-const BarChartLabel = (props: any) => {
-  const { x, y, width, value } = props;
-  if (value === 0) return null;
-  
-  return (
-    <text 
-      x={x + width / 2} 
-      y={y - 5} 
-      fill="currentColor" 
-      textAnchor="middle" 
-      className="text-xs font-bold fill-slate-700 dark:fill-slate-300"
-    >
-      {value}
-    </text>
-  );
-};
-
-// Professional Area Chart using Recharts
-function ImprovedLineChart({ 
-  data, 
+// Professional Laundry Line Chart using Recharts
+function ImprovedLaundryLineChart({
+  data,
   color,
-  formatValue = (v) => v.toString()
-}: { 
-  data: { date: string; value: number }[]; 
+  timeRange,
+}: {
+  data: { date: string; value: number }[];
   color: string;
-  formatValue?: (value: number) => string;
-}) {
-  if (!data || data.length === 0) {
-    return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
-            <TrendingUpIcon size={28} className="text-slate-400" />
-          </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">No data available</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-            Data will appear once you have revenue
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const maxValue = Math.max(...data.map((d) => d.value), 1);
-  const hasData = data.some(d => d.value > 0);
-
-  // Handle single data point case
-  if (data.length === 1) {
-    return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-4" style={{ backgroundColor: color + '20' }}>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-                {formatValue(data[0].value)}
-              </div>
-            </div>
-          </div>
-          <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-            {data[0].date}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Check if all values are zero or very small
-  if (!hasData || maxValue < 1) {
-    return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
-            <BarChart3 size={28} className="text-slate-400" />
-          </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">No revenue yet</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-            Start receiving payments to see trends
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-64">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-          <defs>
-            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
-              <stop offset="95%" stopColor={color} stopOpacity={0.05}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
-          <XAxis 
-            dataKey="date" 
-            className="text-xs text-slate-500 dark:text-slate-400"
-            tick={{ fill: 'currentColor' }}
-            tickLine={false}
-            axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
-          />
-          <YAxis 
-            className="text-xs text-slate-500 dark:text-slate-400"
-            tick={{ fill: 'currentColor' }}
-            tickLine={false}
-            axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
-            tickFormatter={(value) => `₱${value}`}
-          />
-          <Tooltip content={<LineChartTooltip formatValue={formatValue} />} />
-          <Area 
-            type="monotone" 
-            dataKey="value" 
-            stroke={color} 
-            strokeWidth={2.5}
-            fill="url(#colorRevenue)"
-            dot={{ fill: color, r: 3 }}
-            activeDot={{ r: 5, fill: color }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-// Professional Bar Chart using Recharts
-function ImprovedBarChart({ 
-  data, 
-  color 
-}: { 
-  data: { date: string; value: number }[]; 
-  color: string;
+  timeRange: "today" | "week" | "month" | "all";
 }) {
   if (!data || data.length === 0) {
     return (
@@ -947,7 +855,9 @@ function ImprovedBarChart({
           <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
             <Package size={28} className="text-slate-400" />
           </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">No services available</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">
+            No services available
+          </p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
             Data will appear once you have orders
           </p>
@@ -956,53 +866,111 @@ function ImprovedBarChart({
     );
   }
 
-  const maxValue = Math.max(...data.map((d) => d.value), 1);
-  const hasData = data.some(d => d.value > 0);
+  const parseChartDate = (dateLabel: string): Date | null => {
+    const trimmed = dateLabel.trim();
+    const directDate = new Date(trimmed);
 
-  // Check if all values are zero
-  if (!hasData || maxValue < 1) {
-    return (
-      <div className="h-64 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
-            <Package size={28} className="text-slate-400" />
-          </div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">No services yet</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-            Create your first order to see trends
-          </p>
-        </div>
-      </div>
-    );
+    if (!Number.isNaN(directDate.getTime())) {
+      return directDate;
+    }
+
+    const currentYear = new Date().getFullYear();
+    const labelDate = new Date(`${trimmed}, ${currentYear}`);
+
+    if (!Number.isNaN(labelDate.getTime())) {
+      return labelDate;
+    }
+
+    return null;
+  };
+
+  let chartData: {
+    date: string;
+    day?: number;
+    value: number;
+    fullDate?: string;
+  }[] = data;
+
+  if (timeRange === "month") {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const totalsByDay = new Map<number, number>();
+
+    data.forEach((item) => {
+      const parsedDate = parseChartDate(item.date);
+
+      if (
+        parsedDate &&
+        parsedDate.getFullYear() === year &&
+        parsedDate.getMonth() === month
+      ) {
+        const day = parsedDate.getDate();
+        totalsByDay.set(day, (totalsByDay.get(day) || 0) + item.value);
+      }
+    });
+
+    chartData = Array.from({ length: daysInMonth }, (_, index) => {
+      const day = index + 1;
+      const fullDate = new Date(year, month, day).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+
+      return {
+        date: day.toString(),
+        day,
+        value: totalsByDay.get(day) || 0,
+        fullDate,
+      };
+    });
   }
+
+  const maxValue = Math.max(...chartData.map((item) => item.value), 1);
+  const yAxisMaximum = Math.max(4, Math.ceil(maxValue));
 
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
-          <XAxis 
-            dataKey="date" 
-            className="text-xs text-slate-500 dark:text-slate-400"
-            tick={{ fill: 'currentColor' }}
-            tickLine={false}
-            axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
+        <LineChart
+          data={chartData}
+          margin={{ top: 20, right: 10, left: 0, bottom: 0 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            className="stroke-slate-200 dark:stroke-slate-700"
+            opacity={0.5}
           />
-          <YAxis 
+          <XAxis
+            dataKey={timeRange === "month" ? "day" : "date"}
             className="text-xs text-slate-500 dark:text-slate-400"
-            tick={{ fill: 'currentColor' }}
+            tick={{ fill: "currentColor", fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
+            axisLine={{ stroke: "currentColor", opacity: 0.2 }}
+            interval={timeRange === "month" ? 0 : "preserveStartEnd"}
+            minTickGap={timeRange === "month" ? 0 : 12}
+          />
+          <YAxis
+            className="text-xs text-slate-500 dark:text-slate-400"
+            tick={{ fill: "currentColor" }}
+            tickLine={false}
+            axisLine={{ stroke: "currentColor", opacity: 0.2 }}
             allowDecimals={false}
+            domain={[0, yAxisMaximum]}
           />
-          <Tooltip content={<BarChartTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
-          <Bar 
-            dataKey="value" 
-            fill={color} 
-            radius={[4, 4, 0, 0]}
-            label={<BarChartLabel />}
+          <Tooltip content={<LaundryLineChartTooltip />} />
+          <Line
+            type="monotone"
+            dataKey="value"
+            stroke={color}
+            strokeWidth={2.5}
+            dot={{ fill: color, r: 3 }}
+            activeDot={{ fill: color, r: 5 }}
+            connectNulls
           />
-        </BarChart>
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );
