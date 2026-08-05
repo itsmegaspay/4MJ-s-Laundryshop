@@ -643,9 +643,9 @@ export default function AnalyticsReportPage() {
                   severity={
                     previousRevenue === 0
                       ? "orange"
-                      : revenueChange >= 10
+                      : revenueChange > 0
                       ? "green"
-                      : revenueChange >= 0
+                      : revenueChange === 0
                       ? "orange"
                       : "red"
                   }
@@ -668,9 +668,9 @@ export default function AnalyticsReportPage() {
                   severity={
                     previousOrders === 0
                       ? "orange"
-                      : ordersChange >= 10
+                      : ordersChange > 0
                       ? "green"
-                      : ordersChange >= 0
+                      : ordersChange === 0
                       ? "orange"
                       : "red"
                   }
