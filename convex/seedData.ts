@@ -170,7 +170,7 @@ export const seedHistoricalOrders = mutation({
     }
 
     // Seed an initial base of ~25 customers right at the start
-    const initialBatch = 25;
+    const initialBatch = 35;
     for (let i = 0; i < initialBatch; i++) {
       const createdAt = randomTimeOnDay(startYear, startMonth, randomInt(1, 28));
       const { fullName } = makeCustomer(createdAt);
@@ -199,14 +199,15 @@ export const seedHistoricalOrders = mutation({
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const maxDay = isCurrentMonth ? now.getDate() : daysInMonth;
 
-      // 30-40 orders per month, scaled down proportionally for a partial current month
-      const fullMonthTarget = randomInt(30, 40);
+      // 55-70 orders per month (increased volume), scaled down proportionally
+      // for a partial current month
+      const fullMonthTarget = randomInt(55, 70);
       const monthTarget = isCurrentMonth
         ? Math.max(1, Math.round(fullMonthTarget * (maxDay / daysInMonth)))
         : fullMonthTarget;
 
       // Occasionally add 1-3 brand-new customers this month (customer base grows over time)
-      const newCustomersThisMonth = randomInt(1, 3);
+      const newCustomersThisMonth = randomInt(2, 4);
       for (let i = 0; i < newCustomersThisMonth; i++) {
         const day = randomInt(1, maxDay);
         const createdAt = randomTimeOnDay(year, month, day);
