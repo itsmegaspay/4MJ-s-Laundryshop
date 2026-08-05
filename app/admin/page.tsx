@@ -838,6 +838,113 @@ const LaundryLineChartTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+// Professional Area Chart using Recharts
+function ImprovedLineChart({ 
+  data, 
+  color,
+  formatValue = (v) => v.toString()
+}: { 
+  data: { date: string; value: number }[]; 
+  color: string;
+  formatValue?: (value: number) => string;
+}) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-64 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
+            <TrendingUpIcon size={28} className="text-slate-400" />
+          </div>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">No data available</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            Data will appear once you have revenue
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const maxValue = Math.max(...data.map((d) => d.value), 1);
+  const hasData = data.some(d => d.value > 0);
+
+  // Handle single data point case
+  if (data.length === 1) {
+    return (
+      <div className="h-64 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-4" style={{ backgroundColor: color + '20' }}>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                {formatValue(data[0].value)}
+              </div>
+            </div>
+          </div>
+          <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+            {data[0].date}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if all values are zero or very small
+  if (!hasData || maxValue < 1) {
+    return (
+      <div className="h-64 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
+            <BarChart3 size={28} className="text-slate-400" />
+          </div>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">No revenue yet</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            Start receiving payments to see trends
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
+              <stop offset="95%" stopColor={color} stopOpacity={0.05}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
+          <XAxis 
+            dataKey="date" 
+            className="text-xs text-slate-500 dark:text-slate-400"
+            tick={{ fill: 'currentColor' }}
+            tickLine={false}
+            axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
+          />
+          <YAxis 
+            className="text-xs text-slate-500 dark:text-slate-400"
+            tick={{ fill: 'currentColor' }}
+            tickLine={false}
+            axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
+            tickFormatter={(value) => `₱${value}`}
+          />
+          <Tooltip content={<LineChartTooltip formatValue={formatValue} />} />
+          <Area 
+            type="monotone" 
+            dataKey="value" 
+            stroke={color} 
+            strokeWidth={2.5}
+            fill="url(#colorRevenue)"
+            dot={{ fill: color, r: 3 }}
+            activeDot={{ r: 5, fill: color }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 // Professional Laundry Line Chart using Recharts
 function ImprovedLaundryLineChart({
   data,
