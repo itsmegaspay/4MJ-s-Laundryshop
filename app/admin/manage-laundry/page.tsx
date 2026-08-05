@@ -164,20 +164,22 @@ export default function ManageLaundryPage() {
   const sortedOrders = [...filteredOrders].sort((a, b) => {
     switch (sortBy) {
       case "date-desc": {
-        const sequenceDifference =
-          getServiceSequence(b.orderId) - getServiceSequence(a.orderId);
+        // Service IDs use LND-YYYYMMDD-NNN, so comparing the complete ID
+        // correctly sorts by year, month, day, and sequence number.
+        const idDifference = b.orderId.localeCompare(a.orderId, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
 
-        return sequenceDifference !== 0
-          ? sequenceDifference
-          : b.createdAt - a.createdAt;
+        return idDifference !== 0 ? idDifference : b.createdAt - a.createdAt;
       }
       case "date-asc": {
-        const sequenceDifference =
-          getServiceSequence(a.orderId) - getServiceSequence(b.orderId);
+        const idDifference = a.orderId.localeCompare(b.orderId, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
 
-        return sequenceDifference !== 0
-          ? sequenceDifference
-          : a.createdAt - b.createdAt;
+        return idDifference !== 0 ? idDifference : a.createdAt - b.createdAt;
       }
       case "name-asc":
         return (a.customer?.name || "").localeCompare(b.customer?.name || "");
@@ -192,12 +194,12 @@ export default function ManageLaundryPage() {
       case "total-asc":
         return (a.pricing?.totalPrice || 0) - (b.pricing?.totalPrice || 0);
       default: {
-        const sequenceDifference =
-          getServiceSequence(b.orderId) - getServiceSequence(a.orderId);
+        const idDifference = b.orderId.localeCompare(a.orderId, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
 
-        return sequenceDifference !== 0
-          ? sequenceDifference
-          : b.createdAt - a.createdAt;
+        return idDifference !== 0 ? idDifference : b.createdAt - a.createdAt;
       }
     }
   });

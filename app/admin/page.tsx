@@ -74,6 +74,10 @@ export default function AdminDashboard() {
     timeRange,
   });
 
+  // Convex queries update reactively whenever a laundry service is created.
+  // This is used as the source of truth for the monthly Laundry Volume chart.
+  const realtimeOrders = useQuery(api.laundryOrdersQueries.getAllOrders, {});
+
   const recentActivity = useQuery(api.analytics.getRecentActivity, {
     limit: 5,
   });
@@ -639,6 +643,7 @@ export default function AdminDashboard() {
                 </div>
                 <ImprovedLaundryLineChart
                   data={ordersByDay}
+                  realtimeOrders={realtimeOrders || []}
                   color="#3b82f6"
                   timeRange={timeRange}
                 />
@@ -848,7 +853,7 @@ function ImprovedLineChart({
   color: string;
   formatValue?: (value: number) => string;
 }) {
-  if (!data || data.length === 0) {
+  if ((!data || data.length === 0) && realtimeOrders.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center">
         <div className="text-center">
@@ -948,10 +953,12 @@ function ImprovedLineChart({
 // Professional Laundry Line Chart using Recharts
 function ImprovedLaundryLineChart({
   data,
+  realtimeOrders,
   color,
   timeRange,
 }: {
   data: { date: string; value: number }[];
+  realtimeOrders: { createdAt: number }[];
   color: string;
   timeRange: "today" | "week" | "month" | "all";
 }) {
@@ -1005,16 +1012,17 @@ function ImprovedLaundryLineChart({
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const totalsByDay = new Map<number, number>();
 
-    data.forEach((item) => {
-      const parsedDate = parseChartDate(item.date);
+    // Count the actual laundry service records. Because `realtimeOrders` is a
+    // Convex query result, this updates automatically after create/cancel/etc.
+    realtimeOrders.forEach((order) => {
+      const createdDate = new Date(order.createdAt);
 
       if (
-        parsedDate &&
-        parsedDate.getFullYear() === year &&
-        parsedDate.getMonth() === month
+        createdDate.getFullYear() === year &&
+        createdDate.getMonth() === month
       ) {
-        const day = parsedDate.getDate();
-        totalsByDay.set(day, (totalsByDay.get(day) || 0) + item.value);
+        const day = createdDate.getDate();
+        totalsByDay.set(day, (totalsByDay.get(day) || 0) + 1);
       }
     });
 
