@@ -152,10 +152,22 @@ export default function ManageLaundryPage() {
   // Sort orders based on selected sort option
   const sortedOrders = [...filteredOrders].sort((a, b) => {
     switch (sortBy) {
-      case "date-desc":
-        return b.createdAt - a.createdAt; // Newest first
-      case "date-asc":
-        return a.createdAt - b.createdAt; // Oldest first
+      case "date-desc": {
+        const idDifference = b.orderId.localeCompare(a.orderId, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
+
+        return idDifference !== 0 ? idDifference : b.createdAt - a.createdAt;
+      }
+      case "date-asc": {
+        const idDifference = a.orderId.localeCompare(b.orderId, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
+
+        return idDifference !== 0 ? idDifference : a.createdAt - b.createdAt;
+      }
       case "name-asc":
         return (a.customer?.name || "").localeCompare(b.customer?.name || "");
       case "name-desc":
@@ -168,8 +180,14 @@ export default function ManageLaundryPage() {
         return (b.pricing?.totalPrice || 0) - (a.pricing?.totalPrice || 0);
       case "total-asc":
         return (a.pricing?.totalPrice || 0) - (b.pricing?.totalPrice || 0);
-      default:
-        return b.createdAt - a.createdAt;
+      default: {
+        const idDifference = b.orderId.localeCompare(a.orderId, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
+
+        return idDifference !== 0 ? idDifference : b.createdAt - a.createdAt;
+      }
     }
   });
 
@@ -267,6 +285,7 @@ export default function ManageLaundryPage() {
     inProgress: allOrders?.filter(o => o.status === "in-progress").length || 0,
     ready: allOrders?.filter(o => o.status === "ready").length || 0,
     completed: allOrders?.filter(o => o.status === "completed").length || 0,
+    cancelled: allOrders?.filter(o => o.status === "cancelled").length || 0,
   };
 
   return (
@@ -336,7 +355,7 @@ export default function ManageLaundryPage() {
             </div>
 
             {/* Stats */}
-            <div className="mb-6 grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="mb-6 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
               <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                 <p className="text-sm text-slate-600 dark:text-slate-400">Total</p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{stats.total}</p>
@@ -356,6 +375,10 @@ export default function ManageLaundryPage() {
               <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                 <p className="text-sm text-slate-600 dark:text-slate-400">Completed</p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{stats.completed}</p>
+              </div>
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                <p className="text-sm text-slate-600 dark:text-slate-400">Cancelled</p>
+                <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.cancelled}</p>
               </div>
             </div>
 
